@@ -108,9 +108,10 @@
         .tool-url { font-size:0.75rem; color:var(--text-muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; text-decoration:none; transition:color 0.15s; }
         .tool-url:hover { color:var(--accent-light); }
         .tool-description { color:var(--text-secondary); font-size:0.875rem; line-height:1.75; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-        .tool-benefits { display:flex; flex-wrap:wrap; gap:6px; }
-        .benefit-tag { padding:3px 11px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:100px; font-size:0.72rem; font-weight:500; color:var(--text-secondary); transition:all 0.15s; }
-        .benefit-tag:hover { border-color:var(--accent); color:var(--accent-light); background:var(--accent-glow); }
+        /* CHANGED: Renamed .tool-benefits to .tool-tags for clarity, but kept styling */
+        .tool-tags { display:flex; flex-wrap:wrap; gap:6px; }
+        .tag-pill { padding:3px 11px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:100px; font-size:0.72rem; font-weight:500; color:var(--text-secondary); transition:all 0.15s; }
+        .tag-pill:hover { border-color:var(--accent); color:var(--accent-light); background:var(--accent-glow); }
         .card-footer { display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--border-primary); margin-top:auto; }
         .tool-source { display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); }
         .source-dot { width:5px; height:5px; border-radius:50%; background:var(--success); }
@@ -146,6 +147,11 @@
         .remove-benefit-btn:hover { border-color:var(--error); color:var(--error); background:var(--error-glow); }
         .add-benefit-btn { display:flex; align-items:center; gap:6px; padding:6px 12px; background:transparent; border:1px dashed var(--border-secondary); border-radius:var(--radius-sm); color:var(--text-muted); font-size:0.78rem; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; width:fit-content; }
         .add-benefit-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+        /* CHANGED: Added tag-pill styles for multi-select in modal */
+        .tags-selector { display:flex; flex-wrap:wrap; gap:8px; }
+        .tag-pill-btn { padding:6px 14px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:100px; font-size:0.82rem; font-weight:500; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+        .tag-pill-btn:hover { border-color:var(--border-secondary); color:var(--text-primary); }
+        .tag-pill-btn.selected { background:var(--accent-glow); border-color:var(--accent-border); color:var(--accent-light); }
         .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border-primary); }
         .btn-secondary { padding:9px 18px; background:transparent; border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-secondary); font-size:0.88rem; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
         .btn-secondary:hover { border-color:var(--border-secondary); color:var(--text-primary); background:var(--bg-tertiary); }
@@ -203,7 +209,7 @@
     </header>
     <div class="stats-bar">
         <div class="stat-item"><div class="stat-value" id="totalTools">0</div><div class="stat-label">Tools</div></div>
-        <div class="stat-item"><div class="stat-value" id="totalCategories">0</div><div class="stat-label">Categories</div></div>
+        <div class="stat-item"><div class="stat-value" id="totalCategories">0</div><div class="stat-label">Tags</div></div>
         <div class="stat-item"><div class="stat-value" id="lastAdded">—</div><div class="stat-label">Last Added</div></div>
     </div>
     <section class="input-section">
@@ -218,13 +224,16 @@
         </div>
         <div class="status-message" id="statusMessage"></div>
     </section>
+    <!-- CHANGED: Updated filter buttons - renamed AI & ML→AI, Developer→Development, added Software & Entertainment -->
     <div class="filters">
         <div class="filter-group" id="filterGroup">
             <button class="filter-btn active" data-filter="all">All Tools</button>
-            <button class="filter-btn" data-filter="ai">AI & ML</button>
-            <button class="filter-btn" data-filter="dev">Developer</button>
+            <button class="filter-btn" data-filter="ai">AI</button>
+            <button class="filter-btn" data-filter="dev">Development</button>
             <button class="filter-btn" data-filter="productivity">Productivity</button>
             <button class="filter-btn" data-filter="design">Design</button>
+            <button class="filter-btn" data-filter="software">Software</button>
+            <button class="filter-btn" data-filter="entertainment">Entertainment</button>
         </div>
         <div class="search-box">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -252,10 +261,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let tools = [];
-let currentFilter = 'all';
+/* CHANGED: currentFilter is now an array of active filters, default ['all'] */
+let activeFilters = ['all'];
 let searchQuery = '';
 let pendingTool = null;
 let editingId = null;
+
+// CHANGED: All available tags for the system
+const ALL_TAGS = ['ai', 'dev', 'productivity', 'design', 'software', 'entertainment'];
+
+// CHANGED: Tag display names
+const TAG_LABELS = {
+    ai: 'AI',
+    dev: 'Development',
+    productivity: 'Productivity',
+    design: 'Design',
+    software: 'Software',
+    entertainment: 'Entertainment'
+};
 
 // ==================== GET USER — always fresh from session ====================
 async function getUser() {
@@ -320,16 +343,36 @@ document.getElementById('signOutBtn').onclick = async function() {
 };
 
 // ==================== DB — always calls getUser() fresh ====================
+/* CHANGED: loadTools now reads from 'tags' column (jsonb array) */
 async function loadTools() {
     const user = await getUser();
     if (!user) return;
     try {
         const { data, error } = await db.from('tools').select('*').eq('user_id', user.id).order('added_at', { ascending: false });
         if (error) throw error;
-        tools = data || [];
+        // CHANGED: Normalize tags from various formats (jsonb, string, null) to array
+        tools = (data || []).map(t => ({
+            ...t,
+            tags: normalizeTags(t.tags)
+        }));
     } catch(e) { console.error('Load error:', e); tools = []; }
 }
 
+/* CHANGED: Helper to normalize tags from jsonb/string/null to array */
+function normalizeTags(tags) {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    if (typeof tags === 'string') {
+        try {
+            const parsed = JSON.parse(tags);
+            if (Array.isArray(parsed)) return parsed;
+        } catch(e) {}
+        return tags.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+}
+
+/* CHANGED: insertTool now sends tags array to 'tags' column */
 async function insertTool(tool) {
     const user = await getUser();
     if (!user) throw new Error('Not signed in — please refresh the page');
@@ -337,10 +380,19 @@ async function insertTool(tool) {
     if (error) throw error;
 }
 
+/* CHANGED: updateToolInDB now updates 'tags' instead of 'category' */
 async function updateToolInDB(tool) {
     const user = await getUser();
     if (!user) throw new Error('Not signed in — please refresh the page');
-    const { error } = await db.from('tools').update({ name:tool.name, url:tool.url, description:tool.description, category:tool.category, benefits:tool.benefits, icon:tool.icon, source:tool.source }).eq('id', tool.id);
+    const { error } = await db.from('tools').update({ 
+        name: tool.name, 
+        url: tool.url, 
+        description: tool.description, 
+        tags: tool.tags, 
+        benefits: tool.benefits, 
+        icon: tool.icon, 
+        source: tool.source 
+    }).eq('id', tool.id);
     if (error) throw error;
 }
 
@@ -352,6 +404,7 @@ async function deleteToolFromDB(id) {
 }
 
 // ==================== METADATA ====================
+/* CHANGED: extractMetadata now returns tags array with default ['productivity'] */
 async function extractMetadata(url) {
     const domain = (() => { try { return new URL(url).hostname; } catch { return url; } })();
     try {
@@ -359,34 +412,52 @@ async function extractMetadata(url) {
         if (r.ok) {
             const d = await r.json();
             if (d.status === 'success' && d.data) {
-                return { name: d.data.title ? d.data.title.split(/[|–—·]/)[0].trim() : domain, description: d.data.description||'', category:'productivity', benefits:[], url, icon: d.data.logo?.url||d.data.image?.url||`https://www.google.com/s2/favicons?domain=${domain}&sz=128`, source:'Microlink' };
+                return { 
+                    name: d.data.title ? d.data.title.split(/[|–—·]/)[0].trim() : domain, 
+                    description: d.data.description || '', 
+                    tags: ['productivity'], 
+                    benefits: [], 
+                    url, 
+                    icon: d.data.logo?.url || d.data.image?.url || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
+                    source: 'Microlink' 
+                };
             }
         }
     } catch(e) {}
-    return { name:'', description:'', category:'productivity', benefits:[], url, icon:`https://www.google.com/s2/favicons?domain=${domain}&sz=128`, source:'Manual' };
+    return { 
+        name: '', 
+        description: '', 
+        tags: ['productivity'], 
+        benefits: [], 
+        url, 
+        icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
+        source: 'Manual' 
+    };
 }
 
 // ==================== MODAL ====================
+/* CHANGED: openModal now uses tags array and renders multi-select pill buttons */
 function openModal(tool, isEditing) {
-    pendingTool = { ...tool };
+    pendingTool = { ...tool, tags: normalizeTags(tool.tags) };
     editingId = isEditing ? tool.id : null;
     document.getElementById('modalTitle').textContent = isEditing ? 'Edit Tool' : 'Review & Edit Tool';
     document.getElementById('modalBody').innerHTML = `
         <div class="field-group"><label>Name</label><input class="field-input" id="f-name" value="${esc(tool.name)}" placeholder="Tool name"></div>
         <div class="field-group"><label>URL</label><input class="field-input" id="f-url" value="${esc(tool.url)}" placeholder="https://..."></div>
         <div class="field-group"><label>Description</label><textarea class="field-textarea" id="f-desc" placeholder="What does this tool do?">${esc(tool.description)}</textarea></div>
+        <!-- CHANGED: Replaced category dropdown with multi-select tag pills -->
         <div class="field-group">
-            <label>Category</label>
-            <select class="field-select" id="f-cat">
-                <option value="ai" ${tool.category==='ai'?'selected':''}>AI & ML</option>
-                <option value="dev" ${tool.category==='dev'?'selected':''}>Developer</option>
-                <option value="productivity" ${tool.category==='productivity'?'selected':''}>Productivity</option>
-                <option value="design" ${tool.category==='design'?'selected':''}>Design</option>
-            </select>
+            <label>Tags</label>
+            <div class="tags-selector" id="f-tags">
+                ${ALL_TAGS.map(tag => {
+                    const isSelected = pendingTool.tags.includes(tag);
+                    return `<button type="button" class="tag-pill-btn ${isSelected ? 'selected' : ''}" data-tag="${tag}" onclick="toggleTag(this)">${esc(TAG_LABELS[tag])}</button>`;
+                }).join('')}
+            </div>
         </div>
         <div class="field-group">
             <label>Key Benefits</label>
-            <div class="benefits-editor" id="f-benefits">${(tool.benefits||[]).map((b,i)=>benefitRow(b,i)).join('')}</div>
+            <div class="benefits-editor" id="f-benefits">${(tool.benefits || []).map((b,i) => benefitRow(b,i)).join('')}</div>
             <button class="add-benefit-btn" onclick="addBenefit()" style="margin-top:8px">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                 Add benefit
@@ -399,6 +470,17 @@ function openModal(tool, isEditing) {
     document.getElementById('modalOverlay').classList.add('active');
 }
 
+/* CHANGED: Added toggleTag function for multi-select */
+function toggleTag(btn) {
+    const tag = btn.dataset.tag;
+    btn.classList.toggle('selected');
+    if (btn.classList.contains('selected')) {
+        if (!pendingTool.tags.includes(tag)) pendingTool.tags.push(tag);
+    } else {
+        pendingTool.tags = pendingTool.tags.filter(t => t !== tag);
+    }
+}
+
 function openLoadingModal() {
     document.getElementById('modalBody').innerHTML = `<div class="ai-loading"><div class="loading-dots"><span></span><span></span><span></span></div><p>Fetching metadata…</p></div>`;
     document.getElementById('modalOverlay').classList.add('active');
@@ -409,8 +491,16 @@ function closeModal() {
     pendingTool = null; editingId = null;
 }
 
+/* CHANGED: getFormData now reads tags from selected pill buttons */
 function getFormData() {
-    return { ...pendingTool, name:document.getElementById('f-name').value.trim(), url:document.getElementById('f-url').value.trim(), description:document.getElementById('f-desc').value.trim(), category:document.getElementById('f-cat').value, benefits:[...document.querySelectorAll('#f-benefits input')].map(i=>i.value.trim()).filter(Boolean) };
+    return { 
+        ...pendingTool, 
+        name: document.getElementById('f-name').value.trim(), 
+        url: document.getElementById('f-url').value.trim(), 
+        description: document.getElementById('f-desc').value.trim(), 
+        tags: [...document.querySelectorAll('#f-tags .tag-pill-btn.selected')].map(btn => btn.dataset.tag),
+        benefits: [...document.querySelectorAll('#f-benefits input')].map(i => i.value.trim()).filter(Boolean) 
+    };
 }
 
 function addBenefit() { const e=document.getElementById('f-benefits'); const div=document.createElement('div'); div.innerHTML=benefitRow('',e.children.length); e.appendChild(div.firstElementChild); }
@@ -422,6 +512,7 @@ async function doSave() {
     const edited = getFormData();
     if (!edited.name) { showToast('Please enter a name', 'error'); return; }
     if (!edited.url) { showToast('Please enter a URL', 'error'); return; }
+    /* CHANGED: Duplicate check now compares URLs */
     const exists = tools.some(t => t.url.toLowerCase() === edited.url.toLowerCase());
     if (exists) { showToast('This tool is already in your registry', 'error'); return; }
     btn.disabled = true; btn.textContent = 'Saving…';
@@ -445,9 +536,9 @@ async function doUpdate() {
     if (!edited.name) { showToast('Please enter a name', 'error'); return; }
     btn.disabled = true; btn.textContent = 'Updating…';
     try {
-        const updated = { ...tools.find(t=>t.id===editingId), ...edited };
+        const updated = { ...tools.find(t => t.id === editingId), ...edited };
         await updateToolInDB(updated);
-        const idx = tools.findIndex(t=>t.id===editingId);
+        const idx = tools.findIndex(t => t.id === editingId);
         if (idx !== -1) tools[idx] = updated;
         renderTools(); updateStats();
         closeModal();
@@ -459,45 +550,65 @@ async function doUpdate() {
     }
 }
 
-function editTool(id) { const tool = tools.find(t=>t.id===id); if(tool) openModal(tool,true); }
+function editTool(id) { const tool = tools.find(t => t.id === id); if(tool) openModal(tool, true); }
 
 async function removeToolById(id) {
     const card = document.querySelector(`[data-tool-id="${id}"]`);
     if (card) {
         card.classList.add('removing');
         setTimeout(async () => {
-            try { await deleteToolFromDB(id); tools=tools.filter(t=>t.id!==id); renderTools(); updateStats(); showToast('Tool removed','success'); }
-            catch(e) { showToast('Could not remove tool','error'); }
+            try { await deleteToolFromDB(id); tools = tools.filter(t => t.id !== id); renderTools(); updateStats(); showToast('Tool removed', 'success'); }
+            catch(e) { showToast('Could not remove tool', 'error'); }
         }, 250);
     }
 }
 
 // ==================== RENDERING ====================
+/* CHANGED: getFiltered now uses OR logic for multiple active filters */
 function getFiltered() {
     let f = tools;
-    if (currentFilter!=='all') f=f.filter(t=>t.category===currentFilter);
-    if (searchQuery) { const q=searchQuery.toLowerCase(); f=f.filter(t=>(t.name||'').toLowerCase().includes(q)||(t.description||'').toLowerCase().includes(q)||(t.benefits||[]).some(b=>b.toLowerCase().includes(q))); }
+    // CHANGED: If 'all' is active, show everything. Otherwise filter by ANY selected tag (OR logic)
+    if (!activeFilters.includes('all')) {
+        f = f.filter(t => {
+            const toolTags = normalizeTags(t.tags);
+            return activeFilters.some(filter => toolTags.includes(filter));
+        });
+    }
+    if (searchQuery) { 
+        const q = searchQuery.toLowerCase(); 
+        f = f.filter(t => 
+            (t.name || '').toLowerCase().includes(q) || 
+            (t.description || '').toLowerCase().includes(q) || 
+            (t.benefits || []).some(b => b.toLowerCase().includes(q))
+        ); 
+    }
     return f;
 }
 
+/* CHANGED: renderTools now displays multiple tags on cards */
 function renderTools() {
     const grid = document.getElementById('toolsGrid');
     const list = getFiltered();
-    if (!list.length) { grid.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length===0?'Add your first tool above. Paste any URL and it will be analyzed automatically.':'No tools match your current filter or search.'}</p></div>`; return; }
+    if (!list.length) { 
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length === 0 ? 'Add your first tool above. Paste any URL and it will be analyzed automatically.' : 'No tools match your current filter or search.'}</p></div>`; 
+        return; 
+    }
     grid.innerHTML = list.map(tool => {
-        const domain=(()=>{try{return new URL(tool.url).hostname;}catch{return tool.url;}})();
-        const iconUrl=tool.icon||`https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-        const initial=(tool.name||'?').charAt(0).toUpperCase();
-        const timeAgo=getTimeAgo(new Date(tool.added_at));
+        const domain = (() => { try { return new URL(tool.url).hostname; } catch { return tool.url; } })();
+        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        const initial = (tool.name || '?').charAt(0).toUpperCase();
+        const timeAgo = getTimeAgo(new Date(tool.added_at));
+        const toolTags = normalizeTags(tool.tags);
         return `<article class="tool-card entering" data-tool-id="${tool.id}">
             <div class="card-header">
-                <div class="tool-icon ${!tool.icon?'fallback':''}">${tool.icon?`<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">`:initial}</div>
+                <div class="tool-icon ${!tool.icon ? 'fallback' : ''}">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
                 <div class="tool-meta"><h3 class="tool-name" title="${esc(tool.name)}">${esc(tool.name)}</h3><a href="${esc(tool.url)}" target="_blank" rel="noopener" class="tool-url">${domain}</a></div>
             </div>
             <p class="tool-description">${esc(tool.description)}</p>
-            <div class="tool-benefits">${(tool.benefits||[]).map(b=>`<span class="benefit-tag">${esc(b)}</span>`).join('')}</div>
+            <!-- CHANGED: Display multiple tags as pills -->
+            <div class="tool-tags">${toolTags.map(tag => `<span class="tag-pill">${esc(TAG_LABELS[tag] || tag)}</span>`).join('')}</div>
             <div class="card-footer">
-                <div class="tool-source"><span class="source-dot"></span><span>${esc(tool.source||'Microlink')} · ${timeAgo}</span></div>
+                <div class="tool-source"><span class="source-dot"></span><span>${esc(tool.source || 'Microlink')} · ${timeAgo}</span></div>
                 <div class="tool-actions">
                     <button class="action-btn visit" onclick="window.open('${esc(tool.url)}','_blank')" title="Visit">↗</button>
                     <button class="action-btn edit" onclick="editTool('${tool.id}')" title="Edit">✎</button>
@@ -508,71 +619,103 @@ function renderTools() {
     }).join('');
 }
 
+/* CHANGED: updateStats now counts unique tags across all tools */
 function updateStats() {
-    document.getElementById('totalTools').textContent=tools.length;
-    document.getElementById('totalCategories').textContent=new Set(tools.map(t=>t.category).filter(Boolean)).size;
-    const last=tools[0];
-    document.getElementById('lastAdded').textContent=last?new Date(last.added_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
+    document.getElementById('totalTools').textContent = tools.length;
+    // CHANGED: Count unique tags across all tools
+    const allTags = new Set();
+    tools.forEach(t => normalizeTags(t.tags).forEach(tag => allTags.add(tag)));
+    document.getElementById('totalCategories').textContent = allTags.size;
+    const last = tools[0];
+    document.getElementById('lastAdded').textContent = last ? new Date(last.added_at).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '—';
 }
 
 function getTimeAgo(date) {
     if(isNaN(date)) return 'Just now';
-    const s=Math.floor((new Date()-date)/1000);
-    for(const[u,sec]of Object.entries({year:31536000,month:2592000,week:604800,day:86400,hour:3600,minute:60})){const n=Math.floor(s/sec);if(n>=1)return`${n} ${u}${n>1?'s':''} ago`;}
+    const s = Math.floor((new Date() - date) / 1000);
+    for(const [u, sec] of Object.entries({year:31536000, month:2592000, week:604800, day:86400, hour:3600, minute:60})) {
+        const n = Math.floor(s / sec);
+        if(n >= 1) return `${n} ${u}${n > 1 ? 's' : ''} ago`;
+    }
     return 'Just now';
 }
 
-function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(str) { return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-function showToast(message,type='success'){
-    const container=document.getElementById('toastContainer');
-    const toast=document.createElement('div');
-    toast.className=`toast ${type}`;
-    toast.innerHTML=`<span>${type==='success'?'✓':'✕'}</span><span>${message}</span>`;
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span><span>${message}</span>`;
     container.appendChild(toast);
-    requestAnimationFrame(()=>toast.classList.add('show'));
-    setTimeout(()=>{toast.classList.remove('show');setTimeout(()=>toast.remove(),300);},3000);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
 // ==================== SUBMIT ====================
 async function handleSubmit() {
-    const input=document.getElementById('urlInput');
-    const btn=document.getElementById('submitBtn');
-    const wrapper=document.getElementById('inputWrapper');
-    const status=document.getElementById('statusMessage');
-    let value=input.value.trim();
+    const input = document.getElementById('urlInput');
+    const btn = document.getElementById('submitBtn');
+    const wrapper = document.getElementById('inputWrapper');
+    const status = document.getElementById('statusMessage');
+    let value = input.value.trim();
     if(!value) return;
-    if(!value.match(/^https?:\/\//i)&&value.includes('.')&&!value.includes(' ')) value='https://'+value;
-    btn.disabled=true; btn.innerHTML='<div class="spinner"></div><span>Analyzing…</span>';
-    wrapper.classList.add('processing'); status.className='status-message';
+    if(!value.match(/^https?:\/\//i) && value.includes('.') && !value.includes(' ')) value = 'https://' + value;
+    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div><span>Analyzing…</span>';
+    wrapper.classList.add('processing'); status.className = 'status-message';
     openLoadingModal();
     try {
-        const metadata=await extractMetadata(value);
-        input.value=''; wrapper.classList.remove('processing'); wrapper.classList.add('success');
-        status.textContent='✓ Analysis complete — review and edit below';
-        status.className='status-message success visible';
-        setTimeout(()=>{wrapper.classList.remove('success');status.classList.remove('visible');},2500);
-        openModal(metadata,false);
+        const metadata = await extractMetadata(value);
+        input.value = ''; wrapper.classList.remove('processing'); wrapper.classList.add('success');
+        status.textContent = '✓ Analysis complete — review and edit below';
+        status.className = 'status-message success visible';
+        setTimeout(() => { wrapper.classList.remove('success'); status.classList.remove('visible'); }, 2500);
+        openModal(metadata, false);
     } catch(err) {
         wrapper.classList.remove('processing');
-        openModal({name:'',description:'',category:'productivity',benefits:[],url:value,icon:'',source:'Manual'},false);
-    } finally { btn.disabled=false; btn.innerHTML='<span>Analyze</span>'; }
+        openModal({name:'', description:'', tags:['productivity'], benefits:[], url:value, icon:'', source:'Manual'}, false);
+    } finally { btn.disabled = false; btn.innerHTML = '<span>Analyze</span>'; }
 }
 
 // ==================== EVENT LISTENERS ====================
 document.getElementById('submitBtn').onclick = handleSubmit;
-document.getElementById('urlInput').addEventListener('keypress', e=>{if(e.key==='Enter')handleSubmit();});
-document.getElementById('filterGroup').addEventListener('click', e=>{
-    if(e.target.classList.contains('filter-btn')){
-        document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentFilter=e.target.dataset.filter;
+document.getElementById('urlInput').addEventListener('keypress', e => { if(e.key === 'Enter') handleSubmit(); });
+
+/* CHANGED: Filter buttons now support multi-toggle. 'All Tools' resets everything. */
+document.getElementById('filterGroup').addEventListener('click', e => {
+    if(e.target.classList.contains('filter-btn')) {
+        const filter = e.target.dataset.filter;
+        if (filter === 'all') {
+            // CHANGED: Reset to only 'all'
+            activeFilters = ['all'];
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        } else {
+            // CHANGED: Remove 'all', toggle this filter
+            activeFilters = activeFilters.filter(f => f !== 'all');
+            document.querySelector('.filter-btn[data-filter="all"]').classList.remove('active');
+            
+            if (activeFilters.includes(filter)) {
+                activeFilters = activeFilters.filter(f => f !== filter);
+                e.target.classList.remove('active');
+            } else {
+                activeFilters.push(filter);
+                e.target.classList.add('active');
+            }
+            
+            // CHANGED: If nothing selected, revert to 'all'
+            if (activeFilters.length === 0) {
+                activeFilters = ['all'];
+                document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+            }
+        }
         renderTools();
     }
 });
-document.getElementById('searchInput').addEventListener('input', e=>{searchQuery=e.target.value;renderTools();});
-document.getElementById('modalOverlay').addEventListener('click', e=>{if(e.target===e.currentTarget)closeModal();});
-document.addEventListener('keydown', e=>{if(e.key==='Escape')closeModal();});
+
+document.getElementById('searchInput').addEventListener('input', e => { searchQuery = e.target.value; renderTools(); });
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
 // ==================== START ====================
 init();
