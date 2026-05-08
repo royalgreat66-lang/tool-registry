@@ -21,6 +21,7 @@
             --warning: #fbbf24;
             --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
             --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+            --sidebar-width: 220px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior:smooth; }
@@ -29,7 +30,6 @@
         .bg-glow { position:fixed; inset:0; z-index:0; pointer-events:none; background:radial-gradient(ellipse 60% 40% at 15% 0%,rgba(91,106,240,0.07) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 85% 100%,rgba(123,137,244,0.05) 0%,transparent 60%); }
         ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg-primary);} ::-webkit-scrollbar-thumb{background:var(--border-secondary);border-radius:3px;}
 
-        /* LOADING SCREEN */
         #loadingScreen { position:fixed; inset:0; background:var(--bg-primary); z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
         #loadingScreen h2 { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; background:linear-gradient(140deg,var(--text-primary) 30%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .loading-dots { display:flex; gap:8px; }
@@ -48,12 +48,35 @@
         .signout-btn { padding:6px 14px; background:transparent; border:1px solid var(--border-primary); border-radius:var(--radius-sm); color:var(--text-muted); font-size:0.78rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
         .signout-btn:hover { border-color:var(--error); color:var(--error); }
 
-        .app-container { position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:96px 28px 0; display:none; }
+        .app-layout { display:none; position:relative; z-index:1; min-height:100vh; }
+        .sidebar { position:fixed; top:56px; left:0; bottom:0; width:var(--sidebar-width); background:var(--bg-secondary); border-right:1px solid var(--border-primary); padding:20px 0; display:flex; flex-direction:column; z-index:50; overflow-y:auto; }
+        .sidebar-section { padding:0 16px; margin-bottom:16px; }
+        .sidebar-title { font-size:0.65rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px; padding:0 8px; }
+        .folder-search { padding:8px 12px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.82rem; font-family:'DM Sans',sans-serif; width:100%; margin-bottom:12px; outline:none; }
+        .folder-search:focus { border-color:var(--accent); }
+        .folder-search::placeholder { color:var(--text-muted); }
+        .nav-item { display:flex; align-items:center; gap:10px; padding:8px 12px; margin:2px 8px; border-radius:var(--radius-md); cursor:pointer; transition:all 0.15s; font-size:0.88rem; color:var(--text-secondary); position:relative; }
+        .nav-item:hover { background:var(--bg-tertiary); color:var(--text-primary); }
+        .nav-item.active { background:var(--accent-glow); color:var(--accent-light); }
+        .nav-item .nav-icon { font-size:1rem; width:20px; text-align:center; }
+        .nav-item .nav-count { margin-left:auto; font-size:0.72rem; color:var(--text-muted); font-family:'DM Mono',monospace; }
+        .nav-item.active .nav-count { color:var(--accent-light); }
+        .nav-actions { display:none; gap:4px; margin-left:auto; }
+        .nav-item:hover .nav-count { display:none; }
+        .nav-item:hover .nav-actions { display:flex; }
+        .nav-action-btn { width:22px; height:22px; border-radius:var(--radius-sm); border:none; background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.75rem; transition:all 0.15s; }
+        .nav-action-btn:hover { background:var(--bg-primary); color:var(--text-primary); }
+        .nav-action-btn.delete:hover { color:var(--error); }
+        .new-folder-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; margin:8px 16px; background:transparent; border:1px dashed var(--border-secondary); border-radius:var(--radius-md); color:var(--text-muted); font-size:0.82rem; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+        .new-folder-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+        .sidebar-divider { height:1px; background:var(--border-primary); margin:8px 16px; }
+
+        .main-content { margin-left:var(--sidebar-width); padding:40px 28px 0; max-width:960px; }
         .header { padding:0 0 28px; text-align:center; }
         .header-badge { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; background:var(--accent-glow); border:1px solid var(--accent-border); border-radius:100px; font-size:0.75rem; font-weight:500; color:var(--accent-light); margin-bottom:18px; letter-spacing:0.04em; font-family:'DM Mono',monospace; }
         .header-badge::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; animation:pulse 2.5s infinite; }
         @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.75);}}
-        .header h1 { font-family:'Syne',sans-serif; font-size:2.8rem; font-weight:800; letter-spacing:-0.04em; margin-bottom:10px; background:linear-gradient(140deg,var(--text-primary) 30%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .header h1 { font-family:'Syne',sans-serif; font-size:2.4rem; font-weight:800; letter-spacing:-0.04em; margin-bottom:10px; background:linear-gradient(140deg,var(--text-primary) 30%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .header p { color:var(--text-secondary); font-size:1rem; max-width:480px; margin:0 auto; font-weight:300; }
 
         .stats-bar { display:flex; justify-content:center; gap:48px; padding:24px 0 44px; flex-wrap:wrap; }
@@ -61,7 +84,13 @@
         .stat-value { font-family:'Syne',sans-serif; font-size:1.9rem; font-weight:700; color:var(--text-primary); line-height:1; }
         .stat-label { font-size:0.72rem; color:var(--text-muted); margin-top:5px; text-transform:uppercase; letter-spacing:0.1em; }
 
-        .input-section { max-width:620px; margin:0 auto 52px; position:relative; }
+        .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:14px; }
+        .view-toggle { display:flex; gap:4px; background:var(--bg-secondary); border:1px solid var(--border-primary); border-radius:var(--radius-md); padding:3px; }
+        .view-btn { width:32px; height:28px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:0.9rem; transition:all 0.15s; }
+        .view-btn:hover { color:var(--text-primary); }
+        .view-btn.active { background:var(--accent-glow); color:var(--accent-light); }
+
+        .input-section { max-width:620px; margin:0 auto 40px; position:relative; }
         .input-wrapper { background:var(--bg-secondary); border:1px solid var(--border-primary); border-radius:var(--radius-xl); padding:6px; transition:border-color 0.2s,box-shadow 0.2s; box-shadow:0 4px 16px rgba(0,0,0,0.3); }
         .input-wrapper:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow),0 4px 16px rgba(0,0,0,0.3); }
         .input-wrapper.processing { border-color:var(--warning); }
@@ -90,7 +119,7 @@
         .search-box input::placeholder { color:var(--text-muted); }
         .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; width:14px; height:14px; }
 
-        .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:18px; margin-bottom:60px; }
+        .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; margin-bottom:60px; }
         .tool-card { background:var(--bg-card); border:1px solid var(--border-primary); border-radius:var(--radius-lg); padding:22px; position:relative; overflow:hidden; transition:border-color 0.2s,background 0.2s,transform 0.2s,box-shadow 0.2s; display:flex; flex-direction:column; gap:14px; }
         .tool-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--accent-light)); opacity:0; transition:opacity 0.2s; }
         .tool-card:hover { border-color:var(--border-secondary); background:var(--bg-card-hover); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.45); }
@@ -108,10 +137,10 @@
         .tool-url { font-size:0.75rem; color:var(--text-muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; text-decoration:none; transition:color 0.15s; }
         .tool-url:hover { color:var(--accent-light); }
         .tool-description { color:var(--text-secondary); font-size:0.875rem; line-height:1.75; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-        /* CHANGED: Renamed .tool-benefits to .tool-tags for clarity, but kept styling */
         .tool-tags { display:flex; flex-wrap:wrap; gap:6px; }
         .tag-pill { padding:3px 11px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:100px; font-size:0.72rem; font-weight:500; color:var(--text-secondary); transition:all 0.15s; }
         .tag-pill:hover { border-color:var(--accent); color:var(--accent-light); background:var(--accent-glow); }
+        .folder-badge { padding:2px 8px; background:rgba(91,106,240,0.15); border:1px solid rgba(91,106,240,0.3); border-radius:100px; font-size:0.68rem; font-weight:500; color:var(--accent-light); margin-left:auto; }
         .card-footer { display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--border-primary); margin-top:auto; }
         .tool-source { display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); }
         .source-dot { width:5px; height:5px; border-radius:50%; background:var(--success); }
@@ -120,6 +149,15 @@
         .action-btn:hover { border-color:var(--error); color:var(--error); background:var(--error-glow); }
         .action-btn.visit:hover { border-color:var(--accent); color:var(--accent-light); background:var(--accent-glow); }
         .action-btn.edit:hover { border-color:var(--warning); color:var(--warning); background:rgba(251,191,36,0.1); }
+
+        .tools-list { display:flex; flex-direction:column; gap:8px; margin-bottom:60px; }
+        .tool-row { display:flex; align-items:center; gap:14px; padding:14px 18px; background:var(--bg-card); border:1px solid var(--border-primary); border-radius:var(--radius-md); transition:all 0.15s; }
+        .tool-row:hover { border-color:var(--border-secondary); background:var(--bg-card-hover); }
+        .tool-row .tool-icon { width:36px; height:36px; font-size:1.1rem; }
+        .tool-row .tool-name { font-size:0.95rem; margin-bottom:0; }
+        .tool-row .tool-url { font-size:0.72rem; }
+        .tool-row .tool-meta { display:flex; align-items:center; gap:12px; flex:1; }
+        .tool-row .tool-actions { margin-left:auto; }
 
         .empty-state { text-align:center; padding:80px 20px; grid-column:1/-1; }
         .empty-icon { width:72px; height:72px; margin:0 auto 20px; background:var(--bg-secondary); border:1px solid var(--border-primary); border-radius:var(--radius-xl); display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
@@ -147,7 +185,6 @@
         .remove-benefit-btn:hover { border-color:var(--error); color:var(--error); background:var(--error-glow); }
         .add-benefit-btn { display:flex; align-items:center; gap:6px; padding:6px 12px; background:transparent; border:1px dashed var(--border-secondary); border-radius:var(--radius-sm); color:var(--text-muted); font-size:0.78rem; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; width:fit-content; }
         .add-benefit-btn:hover { border-color:var(--accent); color:var(--accent-light); }
-        /* CHANGED: Added tag-pill styles for multi-select in modal */
         .tags-selector { display:flex; flex-wrap:wrap; gap:8px; }
         .tag-pill-btn { padding:6px 14px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:100px; font-size:0.82rem; font-weight:500; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
         .tag-pill-btn:hover { border-color:var(--border-secondary); color:var(--text-primary); }
@@ -158,6 +195,8 @@
         .btn-save { padding:9px 22px; background:var(--accent); border:none; border-radius:var(--radius-md); color:white; font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.15s; font-family:'Syne',sans-serif; }
         .btn-save:hover { background:var(--accent-light); box-shadow:0 4px 20px rgba(91,106,240,0.35); }
         .btn-save:disabled { opacity:0.55; cursor:not-allowed; }
+        .btn-danger { padding:9px 18px; background:transparent; border:1px solid var(--error); border-radius:var(--radius-md); color:var(--error); font-size:0.88rem; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+        .btn-danger:hover { background:var(--error-glow); }
 
         .toast-container { position:fixed; bottom:24px; right:24px; z-index:2001; display:flex; flex-direction:column; gap:8px; }
         .toast { padding:12px 18px; background:var(--bg-secondary); border:1px solid var(--border-primary); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:9px; font-size:0.875rem; font-weight:500; transform:translateX(110%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); max-width:340px; }
@@ -168,7 +207,15 @@
         .ai-loading { display:flex; flex-direction:column; align-items:center; padding:40px 20px; gap:16px; }
         .ai-loading p { color:var(--text-muted); font-size:0.85rem; }
 
+        .export-btn { padding:7px 14px; background:var(--bg-tertiary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-secondary); font-size:0.82rem; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; margin-left:auto; }
+        .export-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+
+        .delete-confirm { text-align:center; padding:20px; }
+        .delete-confirm p { color:var(--text-secondary); margin-bottom:20px; }
+
         @media(max-width:768px){
+            .sidebar { width:100%; position:relative; top:0; border-right:none; border-bottom:1px solid var(--border-primary); }
+            .main-content { margin-left:0; }
             .header h1{font-size:2rem;} .tools-grid{grid-template-columns:1fr;}
             .filters{flex-direction:column;align-items:stretch;} .search-box input,.search-box input:focus{width:100%;} .filter-group{justify-content:center;}
         }
@@ -178,13 +225,11 @@
 <div class="bg-noise"></div>
 <div class="bg-glow"></div>
 
-<!-- Loading screen shown until auth check completes -->
 <div id="loadingScreen">
     <h2>Tool Registry</h2>
     <div class="loading-dots"><span></span><span></span><span></span></div>
 </div>
 
-<!-- Auth screen shown only if not signed in -->
 <div id="authScreen">
     <div style="text-align:center;">
         <h2>Tool Registry</h2>
@@ -201,53 +246,94 @@
     <button class="signout-btn" id="signOutBtn">Sign out</button>
 </div>
 
-<div class="app-container" id="appContainer">
-    <header class="header">
-        <div class="header-badge">Microlink Metadata</div>
-        <h1>Tool Registry</h1>
-        <p>Paste any URL — it will be analyzed automatically. Edit the details before saving.</p>
-    </header>
-    <div class="stats-bar">
-        <div class="stat-item"><div class="stat-value" id="totalTools">0</div><div class="stat-label">Tools</div></div>
-        <div class="stat-item"><div class="stat-value" id="totalCategories">0</div><div class="stat-label">Tags</div></div>
-        <div class="stat-item"><div class="stat-value" id="lastAdded">—</div><div class="stat-label">Last Added</div></div>
-    </div>
-    <section class="input-section">
-        <div class="input-wrapper" id="inputWrapper">
-            <div class="input-inner">
-                <div class="input-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                </div>
-                <input type="text" class="url-input" id="urlInput" placeholder="Paste a URL (e.g., https://linear.app)..." autocomplete="off">
-                <button class="submit-btn" id="submitBtn"><span>Analyze</span></button>
+<div class="app-layout" id="appLayout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">Views</div>
+            <div class="nav-item active" data-view="loose" onclick="switchView('loose')">
+                <span class="nav-icon">📂</span>
+                <span>Loose</span>
+                <span class="nav-count" id="looseCount">0</span>
+            </div>
+            <div class="nav-item" data-view="everything" onclick="switchView('everything')">
+                <span class="nav-icon">🌐</span>
+                <span>Everything</span>
+                <span class="nav-count" id="everythingCount">0</span>
             </div>
         </div>
-        <div class="status-message" id="statusMessage"></div>
-    </section>
-    <!-- CHANGED: Updated filter buttons - renamed AI & ML→AI, Developer→Development, added Software & Entertainment -->
-    <div class="filters">
-        <div class="filter-group" id="filterGroup">
-            <button class="filter-btn active" data-filter="all">All Tools</button>
-            <button class="filter-btn" data-filter="ai">AI</button>
-            <button class="filter-btn" data-filter="dev">Development</button>
-            <button class="filter-btn" data-filter="productivity">Productivity</button>
-            <button class="filter-btn" data-filter="design">Design</button>
-            <button class="filter-btn" data-filter="software">Software</button>
-            <button class="filter-btn" data-filter="entertainment">Entertainment</button>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">Folders</div>
+            <input type="text" class="folder-search" id="folderSearch" placeholder="Search folders..." oninput="renderSidebar()">
+            <div id="folderList"></div>
+            <button class="new-folder-btn" onclick="createFolderPrompt()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                New Folder
+            </button>
         </div>
-        <div class="search-box">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="searchInput" placeholder="Search tools...">
+    </aside>
+
+    <main class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-badge">Microlink Metadata</div>
+            <h1 id="pageTitle">Tool Registry</h1>
+            <p id="pageSubtitle">Paste any URL — it will be analyzed automatically.</p>
+        </header>
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item"><div class="stat-value" id="totalTools">0</div><div class="stat-label">Tools</div></div>
+            <div class="stat-item"><div class="stat-value" id="totalTags">0</div><div class="stat-label">Tags</div></div>
+            <div class="stat-item" id="foldersStat" style="display:none"><div class="stat-value" id="totalFolders">0</div><div class="stat-label">Folders</div></div>
+            <div class="stat-item"><div class="stat-value" id="lastAdded">—</div><div class="stat-label">Last Added</div></div>
         </div>
-    </div>
-    <div class="tools-grid" id="toolsGrid"></div>
+        
+        <section class="input-section">
+            <div class="input-wrapper" id="inputWrapper">
+                <div class="input-inner">
+                    <div class="input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <input type="text" class="url-input" id="urlInput" placeholder="Paste a URL (e.g., https://linear.app)..." autocomplete="off">
+                    <button class="submit-btn" id="submitBtn"><span>Analyze</span></button>
+                </div>
+            </div>
+            <div class="status-message" id="statusMessage"></div>
+        </section>
+
+        <div class="toolbar" id="toolbar">
+            <div class="filters" id="filterSection">
+                <div class="filter-group" id="filterGroup">
+                    <button class="filter-btn active" data-filter="all">All Tools</button>
+                    <button class="filter-btn" data-filter="ai">AI</button>
+                    <button class="filter-btn" data-filter="dev">Development</button>
+                    <button class="filter-btn" data-filter="productivity">Productivity</button>
+                    <button class="filter-btn" data-filter="design">Design</button>
+                    <button class="filter-btn" data-filter="software">Software</button>
+                    <button class="filter-btn" data-filter="entertainment">Entertainment</button>
+                </div>
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="searchInput" placeholder="Search tools...">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="export-btn" onclick="exportJSON()" title="Export all tools to JSON">⬇ Export JSON</button>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid" onclick="switchDisplayMode('grid')" title="Grid view">▦</button>
+                    <button class="view-btn" data-view="list" onclick="switchDisplayMode('list')" title="List view">☰</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tools-grid" id="toolsGrid"></div>
+        <div class="tools-list" id="toolsList" style="display:none;"></div>
+    </main>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
         <div class="modal-header">
             <h3 id="modalTitle">Review & Edit Tool</h3>
-            <p>Edit any field before saving to your registry.</p>
+            <p id="modalSubtitle">Edit any field before saving to your registry.</p>
         </div>
         <div class="modal-body" id="modalBody"></div>
     </div>
@@ -261,16 +347,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let tools = [];
-/* CHANGED: currentFilter is now an array of active filters, default ['all'] */
+let folders = [];
+let currentView = 'loose';
 let activeFilters = ['all'];
 let searchQuery = '';
 let pendingTool = null;
 let editingId = null;
+let displayMode = 'grid';
+let currentFolderId = null;
 
-// CHANGED: All available tags for the system
 const ALL_TAGS = ['ai', 'dev', 'productivity', 'design', 'software', 'entertainment'];
-
-// CHANGED: Tag display names
 const TAG_LABELS = {
     ai: 'AI',
     dev: 'Development',
@@ -280,42 +366,41 @@ const TAG_LABELS = {
     entertainment: 'Entertainment'
 };
 
-// ==================== GET USER — always fresh from session ====================
 async function getUser() {
     const { data: { session } } = await db.auth.getSession();
     return session?.user || null;
 }
 
-// ==================== UI HELPERS ====================
 function showLoading() {
     document.getElementById('loadingScreen').style.display = 'flex';
     document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'none';
     document.getElementById('userBar').style.display = 'none';
 }
 
 function showAuth() {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'none';
     document.getElementById('userBar').style.display = 'none';
 }
 
 function showApp(user) {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'block';
+    document.getElementById('appLayout').style.display = 'flex';
     document.getElementById('userBar').style.display = 'flex';
     document.getElementById('userEmail').textContent = user.email || user.user_metadata?.user_name || 'Signed in';
 }
 
-// ==================== INIT — wait for session before showing anything ====================
 async function init() {
     showLoading();
     const user = await getUser();
     if (user) {
         showApp(user);
+        await loadFolders();
         await loadTools();
+        renderSidebar();
         renderTools();
         updateStats();
     } else {
@@ -323,7 +408,6 @@ async function init() {
     }
 }
 
-// ==================== AUTH ====================
 document.getElementById('githubBtn').onclick = async function() {
     const { error } = await db.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.href } });
     if (error) showToast('Sign in failed', 'error');
@@ -335,6 +419,7 @@ document.getElementById('signOutBtn').onclick = async function() {
     btn.textContent = 'Signing out…';
     try { await db.auth.signOut(); } catch(e) {}
     tools = [];
+    folders = [];
     showAuth();
     renderTools();
     updateStats();
@@ -342,37 +427,113 @@ document.getElementById('signOutBtn').onclick = async function() {
     btn.textContent = 'Sign out';
 };
 
-// ==================== DB — always calls getUser() fresh ====================
-/* CHANGED: loadTools now reads from 'tags' column (jsonb array) */
+async function loadFolders() {
+    const user = await getUser();
+    if (!user) return;
+    try {
+        const { data, error } = await db.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+        if (error) throw error;
+        folders = data || [];
+    } catch(e) { console.error('Load folders error:', e); folders = []; }
+}
+
+async function createFolder(name) {
+    const user = await getUser();
+    if (!user) throw new Error('Not signed in');
+    const { data, error } = await db.from('folders').insert([{ name, user_id: user.id }]).select();
+    if (error) throw error;
+    if (data && data[0]) {
+        folders.push(data[0]);
+        renderSidebar();
+    }
+    return data?.[0];
+}
+
+async function renameFolder(id, newName) {
+    const { error } = await db.from('folders').update({ name: newName }).eq('id', id);
+    if (error) throw error;
+    const f = folders.find(f => f.id === id);
+    if (f) f.name = newName;
+    renderSidebar();
+}
+
+async function deleteFolder(id) {
+    const { error } = await db.from('folders').delete().eq('id', id);
+    if (error) throw error;
+    folders = folders.filter(f => f.id !== id);
+    tools = tools.filter(t => t.folder_id !== id);
+    renderSidebar();
+    renderTools();
+    updateStats();
+}
+
+function createFolderPrompt() {
+    const name = prompt('Folder name:');
+    if (name && name.trim()) {
+        createFolder(name.trim()).then(() => showToast('Folder created', 'success')).catch(e => showToast(e.message, 'error'));
+    }
+}
+
+function renderSidebar() {
+    const search = document.getElementById('folderSearch').value.toLowerCase();
+    const list = document.getElementById('folderList');
+    const filtered = folders.filter(f => f.name.toLowerCase().includes(search));
+    
+    document.getElementById('looseCount').textContent = tools.filter(t => !t.folder_id).length;
+    document.getElementById('everythingCount').textContent = tools.length;
+    
+    list.innerHTML = filtered.map(folder => {
+        const count = tools.filter(t => t.folder_id === folder.id).length;
+        const isActive = currentView === 'folder' && currentFolderId === folder.id;
+        return `<div class="nav-item ${isActive ? 'active' : ''}" onclick="switchView('folder', '${folder.id}')">
+            <span class="nav-icon">📁</span>
+            <span>${esc(folder.name)}</span>
+            <div class="nav-actions">
+                <button class="nav-action-btn" onclick="event.stopPropagation(); renameFolderPrompt('${folder.id}')" title="Rename">✎</button>
+                <button class="nav-action-btn delete" onclick="event.stopPropagation(); deleteFolderPrompt('${folder.id}')" title="Delete">🗑</button>
+            </div>
+            <span class="nav-count">${count}</span>
+        </div>`;
+    }).join('');
+}
+
+function renameFolderPrompt(id) {
+    const folder = folders.find(f => f.id === id);
+    if (!folder) return;
+    const newName = prompt('New name:', folder.name);
+    if (newName && newName.trim()) {
+        renameFolder(id, newName.trim()).then(() => showToast('Folder renamed', 'success')).catch(e => showToast(e.message, 'error'));
+    }
+}
+
+function deleteFolderPrompt(id) {
+    const folder = folders.find(f => f.id === id);
+    if (!folder) return;
+    const count = tools.filter(t => t.folder_id === id).length;
+    if (!confirm(`Delete "${folder.name}" and all ${count} tools inside? This cannot be undone.`)) return;
+    deleteFolder(id).then(() => showToast('Folder deleted', 'success')).catch(e => showToast(e.message, 'error'));
+}
+
 async function loadTools() {
     const user = await getUser();
     if (!user) return;
     try {
         const { data, error } = await db.from('tools').select('*').eq('user_id', user.id).order('added_at', { ascending: false });
         if (error) throw error;
-        // CHANGED: Normalize tags from various formats (jsonb, string, null) to array
-        tools = (data || []).map(t => ({
-            ...t,
-            tags: normalizeTags(t.tags)
-        }));
+        tools = (data || []).map(t => ({...t, tags: normalizeTags(t.tags)}));
     } catch(e) { console.error('Load error:', e); tools = []; }
 }
 
-/* CHANGED: Helper to normalize tags from jsonb/string/null to array */
 function normalizeTags(tags) {
     if (!tags) return [];
     if (Array.isArray(tags)) return tags;
     if (typeof tags === 'string') {
-        try {
-            const parsed = JSON.parse(tags);
-            if (Array.isArray(parsed)) return parsed;
-        } catch(e) {}
+        try { const parsed = JSON.parse(tags); if (Array.isArray(parsed)) return parsed; } catch(e) {}
         return tags.split(',').map(s => s.trim()).filter(Boolean);
     }
     return [];
 }
 
-/* CHANGED: insertTool now sends tags array to 'tags' column */
 async function insertTool(tool) {
     const user = await getUser();
     if (!user) throw new Error('Not signed in — please refresh the page');
@@ -380,18 +541,13 @@ async function insertTool(tool) {
     if (error) throw error;
 }
 
-/* CHANGED: updateToolInDB now updates 'tags' instead of 'category' */
 async function updateToolInDB(tool) {
     const user = await getUser();
     if (!user) throw new Error('Not signed in — please refresh the page');
     const { error } = await db.from('tools').update({ 
-        name: tool.name, 
-        url: tool.url, 
-        description: tool.description, 
-        tags: tool.tags, 
-        benefits: tool.benefits, 
-        icon: tool.icon, 
-        source: tool.source 
+        name: tool.name, url: tool.url, description: tool.description, 
+        tags: tool.tags, benefits: tool.benefits, icon: tool.icon, 
+        source: tool.source, folder_id: tool.folder_id 
     }).eq('id', tool.id);
     if (error) throw error;
 }
@@ -403,8 +559,6 @@ async function deleteToolFromDB(id) {
     if (error) throw error;
 }
 
-// ==================== METADATA ====================
-/* CHANGED: extractMetadata now returns tags array with default ['productivity'] */
 async function extractMetadata(url) {
     const domain = (() => { try { return new URL(url).hostname; } catch { return url; } })();
     try {
@@ -419,7 +573,8 @@ async function extractMetadata(url) {
                     benefits: [], 
                     url, 
                     icon: d.data.logo?.url || d.data.image?.url || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
-                    source: 'Microlink' 
+                    source: 'Microlink',
+                    folder_id: null
                 };
             }
         }
@@ -431,21 +586,63 @@ async function extractMetadata(url) {
         benefits: [], 
         url, 
         icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
-        source: 'Manual' 
+        source: 'Manual',
+        folder_id: null
     };
 }
 
-// ==================== MODAL ====================
-/* CHANGED: openModal now uses tags array and renders multi-select pill buttons */
+function switchView(view, folderId = null) {
+    currentView = view;
+    currentFolderId = folderId;
+    
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (view === 'loose') document.querySelector('[data-view="loose"]').classList.add('active');
+    else if (view === 'everything') document.querySelector('[data-view="everything"]').classList.add('active');
+    else if (view === 'folder') {
+        const el = document.querySelector(`[onclick="switchView('folder', '${folderId}')"]`);
+        if (el) el.classList.add('active');
+    }
+    
+    const filterSection = document.getElementById('filterSection');
+    if (view === 'folder') {
+        filterSection.style.display = 'none';
+        const folder = folders.find(f => f.id === folderId);
+        document.getElementById('pageTitle').textContent = folder ? esc(folder.name) : 'Folder';
+        document.getElementById('pageSubtitle').textContent = 'Tools in this folder';
+    } else {
+        filterSection.style.display = 'flex';
+        document.getElementById('pageTitle').textContent = 'Tool Registry';
+        document.getElementById('pageSubtitle').textContent = view === 'loose' ? 'Unfiled tools — tag and organize them' : 'All your tools across every folder';
+    }
+    
+    renderTools();
+    updateStats();
+}
+
+function switchDisplayMode(mode) {
+    displayMode = mode;
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === mode));
+    renderTools();
+}
+
 function openModal(tool, isEditing) {
     pendingTool = { ...tool, tags: normalizeTags(tool.tags) };
     editingId = isEditing ? tool.id : null;
     document.getElementById('modalTitle').textContent = isEditing ? 'Edit Tool' : 'Review & Edit Tool';
+    
+    const folderOptions = folders.map(f => `<option value="${f.id}" ${tool.folder_id === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('');
+    
     document.getElementById('modalBody').innerHTML = `
         <div class="field-group"><label>Name</label><input class="field-input" id="f-name" value="${esc(tool.name)}" placeholder="Tool name"></div>
         <div class="field-group"><label>URL</label><input class="field-input" id="f-url" value="${esc(tool.url)}" placeholder="https://..."></div>
         <div class="field-group"><label>Description</label><textarea class="field-textarea" id="f-desc" placeholder="What does this tool do?">${esc(tool.description)}</textarea></div>
-        <!-- CHANGED: Replaced category dropdown with multi-select tag pills -->
+        <div class="field-group">
+            <label>Folder</label>
+            <select class="field-select" id="f-folder">
+                <option value="" ${!tool.folder_id ? 'selected' : ''}>Loose (no folder)</option>
+                ${folderOptions}
+            </select>
+        </div>
         <div class="field-group">
             <label>Tags</label>
             <div class="tags-selector" id="f-tags">
@@ -470,7 +667,6 @@ function openModal(tool, isEditing) {
     document.getElementById('modalOverlay').classList.add('active');
 }
 
-/* CHANGED: Added toggleTag function for multi-select */
 function toggleTag(btn) {
     const tag = btn.dataset.tag;
     btn.classList.toggle('selected');
@@ -491,13 +687,14 @@ function closeModal() {
     pendingTool = null; editingId = null;
 }
 
-/* CHANGED: getFormData now reads tags from selected pill buttons */
 function getFormData() {
+    const folderSelect = document.getElementById('f-folder');
     return { 
         ...pendingTool, 
         name: document.getElementById('f-name').value.trim(), 
         url: document.getElementById('f-url').value.trim(), 
         description: document.getElementById('f-desc').value.trim(), 
+        folder_id: folderSelect ? (folderSelect.value || null) : null,
         tags: [...document.querySelectorAll('#f-tags .tag-pill-btn.selected')].map(btn => btn.dataset.tag),
         benefits: [...document.querySelectorAll('#f-benefits input')].map(i => i.value.trim()).filter(Boolean) 
     };
@@ -512,7 +709,6 @@ async function doSave() {
     const edited = getFormData();
     if (!edited.name) { showToast('Please enter a name', 'error'); return; }
     if (!edited.url) { showToast('Please enter a URL', 'error'); return; }
-    /* CHANGED: Duplicate check now compares URLs */
     const exists = tools.some(t => t.url.toLowerCase() === edited.url.toLowerCase());
     if (exists) { showToast('This tool is already in your registry', 'error'); return; }
     btn.disabled = true; btn.textContent = 'Saving…';
@@ -520,7 +716,9 @@ async function doSave() {
         const newTool = { ...edited, id: crypto.randomUUID(), added_at: new Date().toISOString() };
         await insertTool(newTool);
         tools.unshift(newTool);
-        renderTools(); updateStats();
+        renderSidebar();
+        renderTools();
+        updateStats();
         closeModal();
         showToast(`${edited.name} added to registry`, 'success');
     } catch(e) {
@@ -540,7 +738,9 @@ async function doUpdate() {
         await updateToolInDB(updated);
         const idx = tools.findIndex(t => t.id === editingId);
         if (idx !== -1) tools[idx] = updated;
-        renderTools(); updateStats();
+        renderSidebar();
+        renderTools();
+        updateStats();
         closeModal();
         showToast(`${edited.name} updated`, 'success');
     } catch(e) {
@@ -557,23 +757,28 @@ async function removeToolById(id) {
     if (card) {
         card.classList.add('removing');
         setTimeout(async () => {
-            try { await deleteToolFromDB(id); tools = tools.filter(t => t.id !== id); renderTools(); updateStats(); showToast('Tool removed', 'success'); }
+            try { await deleteToolFromDB(id); tools = tools.filter(t => t.id !== id); renderSidebar(); renderTools(); updateStats(); showToast('Tool removed', 'success'); }
             catch(e) { showToast('Could not remove tool', 'error'); }
         }, 250);
     }
 }
 
-// ==================== RENDERING ====================
-/* CHANGED: getFiltered now uses OR logic for multiple active filters */
 function getFiltered() {
     let f = tools;
-    // CHANGED: If 'all' is active, show everything. Otherwise filter by ANY selected tag (OR logic)
+    
+    if (currentView === 'loose') {
+        f = f.filter(t => !t.folder_id);
+    } else if (currentView === 'folder') {
+        f = f.filter(t => t.folder_id === currentFolderId);
+    }
+    
     if (!activeFilters.includes('all')) {
         f = f.filter(t => {
             const toolTags = normalizeTags(t.tags);
-            return activeFilters.some(filter => toolTags.includes(filter));
+            return activeFilters.every(filter => toolTags.includes(filter));
         });
     }
+    
     if (searchQuery) { 
         const q = searchQuery.toLowerCase(); 
         f = f.filter(t => 
@@ -585,10 +790,23 @@ function getFiltered() {
     return f;
 }
 
-/* CHANGED: renderTools now displays multiple tags on cards */
 function renderTools() {
-    const grid = document.getElementById('toolsGrid');
     const list = getFiltered();
+    const grid = document.getElementById('toolsGrid');
+    const listView = document.getElementById('toolsList');
+    
+    if (displayMode === 'grid') {
+        grid.style.display = 'grid';
+        listView.style.display = 'none';
+        renderGrid(list, grid);
+    } else {
+        grid.style.display = 'none';
+        listView.style.display = 'flex';
+        renderList(list, listView);
+    }
+}
+
+function renderGrid(list, grid) {
     if (!list.length) { 
         grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length === 0 ? 'Add your first tool above. Paste any URL and it will be analyzed automatically.' : 'No tools match your current filter or search.'}</p></div>`; 
         return; 
@@ -599,13 +817,16 @@ function renderTools() {
         const initial = (tool.name || '?').charAt(0).toUpperCase();
         const timeAgo = getTimeAgo(new Date(tool.added_at));
         const toolTags = normalizeTags(tool.tags);
+        const folder = folders.find(f => f.id === tool.folder_id);
+        const folderBadge = folder && currentView !== 'folder' ? `<span class="folder-badge">${esc(folder.name)}</span>` : '';
+        
         return `<article class="tool-card entering" data-tool-id="${tool.id}">
             <div class="card-header">
                 <div class="tool-icon ${!tool.icon ? 'fallback' : ''}">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
                 <div class="tool-meta"><h3 class="tool-name" title="${esc(tool.name)}">${esc(tool.name)}</h3><a href="${esc(tool.url)}" target="_blank" rel="noopener" class="tool-url">${domain}</a></div>
+                ${folderBadge}
             </div>
             <p class="tool-description">${esc(tool.description)}</p>
-            <!-- CHANGED: Display multiple tags as pills -->
             <div class="tool-tags">${toolTags.map(tag => `<span class="tag-pill">${esc(TAG_LABELS[tag] || tag)}</span>`).join('')}</div>
             <div class="card-footer">
                 <div class="tool-source"><span class="source-dot"></span><span>${esc(tool.source || 'Microlink')} · ${timeAgo}</span></div>
@@ -619,14 +840,65 @@ function renderTools() {
     }).join('');
 }
 
-/* CHANGED: updateStats now counts unique tags across all tools */
+function renderList(list, listView) {
+    if (!list.length) { 
+        listView.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length === 0 ? 'Add your first tool above.' : 'No tools match your current filter or search.'}</p></div>`; 
+        return; 
+    }
+    listView.innerHTML = list.map(tool => {
+        const domain = (() => { try { return new URL(tool.url).hostname; } catch { return tool.url; } })();
+        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        const initial = (tool.name || '?').charAt(0).toUpperCase();
+        const folder = folders.find(f => f.id === tool.folder_id);
+        const folderBadge = folder && currentView !== 'folder' ? `<span class="folder-badge">${esc(folder.name)}</span>` : '';
+        
+        return `<div class="tool-row" data-tool-id="${tool.id}">
+            <div class="tool-icon ${!tool.icon ? 'fallback' : ''}" style="width:36px;height:36px;font-size:1.1rem;">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
+            <div class="tool-meta">
+                <h3 class="tool-name">${esc(tool.name)}</h3>
+                <a href="${esc(tool.url)}" target="_blank" rel="noopener" class="tool-url">${domain}</a>
+            </div>
+            ${folderBadge}
+            <div class="tool-actions">
+                <button class="action-btn visit" onclick="window.open('${esc(tool.url)}','_blank')" title="Visit" style="width:28px;height:28px;">↗</button>
+                <button class="action-btn edit" onclick="editTool('${tool.id}')" title="Edit" style="width:28px;height:28px;">✎</button>
+                <button class="action-btn" onclick="removeToolById('${tool.id}')" title="Remove" style="width:28px;height:28px;">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
 function updateStats() {
-    document.getElementById('totalTools').textContent = tools.length;
-    // CHANGED: Count unique tags across all tools
-    const allTags = new Set();
-    tools.forEach(t => normalizeTags(t.tags).forEach(tag => allTags.add(tag)));
-    document.getElementById('totalCategories').textContent = allTags.size;
-    const last = tools[0];
+    let displayTools, displayTags, displayFolders;
+    
+    if (currentView === 'loose') {
+        displayTools = tools.filter(t => !t.folder_id).length;
+        const allTags = new Set();
+        tools.filter(t => !t.folder_id).forEach(t => normalizeTags(t.tags).forEach(tag => allTags.add(tag)));
+        displayTags = allTags.size;
+        displayFolders = 0;
+        document.getElementById('foldersStat').style.display = 'none';
+    } else if (currentView === 'everything') {
+        displayTools = tools.length;
+        const allTags = new Set();
+        tools.forEach(t => normalizeTags(t.tags).forEach(tag => allTags.add(tag)));
+        displayTags = allTags.size;
+        displayFolders = folders.length;
+        document.getElementById('foldersStat').style.display = 'block';
+    } else {
+        displayTools = tools.filter(t => t.folder_id === currentFolderId).length;
+        displayTags = 0;
+        displayFolders = 0;
+        document.getElementById('foldersStat').style.display = 'none';
+    }
+    
+    document.getElementById('totalTools').textContent = displayTools;
+    document.getElementById('totalTags').textContent = displayTags;
+    document.getElementById('totalFolders').textContent = displayFolders;
+    
+    const relevantTools = currentView === 'loose' ? tools.filter(t => !t.folder_id) : 
+                         currentView === 'folder' ? tools.filter(t => t.folder_id === currentFolderId) : tools;
+    const last = relevantTools[0];
     document.getElementById('lastAdded').textContent = last ? new Date(last.added_at).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '—';
 }
 
@@ -652,6 +924,32 @@ function showToast(message, type = 'success') {
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
+// ==================== EXPORT JSON ====================
+function exportJSON() {
+    const data = tools.map(t => ({
+        name: t.name,
+        url: t.url,
+        description: t.description,
+        tags: normalizeTags(t.tags),
+        benefits: t.benefits || [],
+        icon: t.icon,
+        source: t.source,
+        folder_id: t.folder_id,
+        added_at: t.added_at
+    }));
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tool-registry-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('JSON exported successfully', 'success');
+}
+
 // ==================== SUBMIT ====================
 async function handleSubmit() {
     const input = document.getElementById('urlInput');
@@ -666,6 +964,9 @@ async function handleSubmit() {
     openLoadingModal();
     try {
         const metadata = await extractMetadata(value);
+        if (currentView === 'folder' && currentFolderId) {
+            metadata.folder_id = currentFolderId;
+        }
         input.value = ''; wrapper.classList.remove('processing'); wrapper.classList.add('success');
         status.textContent = '✓ Analysis complete — review and edit below';
         status.className = 'status-message success visible';
@@ -673,7 +974,8 @@ async function handleSubmit() {
         openModal(metadata, false);
     } catch(err) {
         wrapper.classList.remove('processing');
-        openModal({name:'', description:'', tags:['productivity'], benefits:[], url:value, icon:'', source:'Manual'}, false);
+        const fallback = {name:'', description:'', tags:['productivity'], benefits:[], url:value, icon:'', source:'Manual', folder_id: currentView === 'folder' ? currentFolderId : null};
+        openModal(fallback, false);
     } finally { btn.disabled = false; btn.innerHTML = '<span>Analyze</span>'; }
 }
 
@@ -681,17 +983,14 @@ async function handleSubmit() {
 document.getElementById('submitBtn').onclick = handleSubmit;
 document.getElementById('urlInput').addEventListener('keypress', e => { if(e.key === 'Enter') handleSubmit(); });
 
-/* CHANGED: Filter buttons now support multi-toggle. 'All Tools' resets everything. */
 document.getElementById('filterGroup').addEventListener('click', e => {
     if(e.target.classList.contains('filter-btn')) {
         const filter = e.target.dataset.filter;
         if (filter === 'all') {
-            // CHANGED: Reset to only 'all'
             activeFilters = ['all'];
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
         } else {
-            // CHANGED: Remove 'all', toggle this filter
             activeFilters = activeFilters.filter(f => f !== 'all');
             document.querySelector('.filter-btn[data-filter="all"]').classList.remove('active');
             
@@ -703,7 +1002,6 @@ document.getElementById('filterGroup').addEventListener('click', e => {
                 e.target.classList.add('active');
             }
             
-            // CHANGED: If nothing selected, revert to 'all'
             if (activeFilters.length === 0) {
                 activeFilters = ['all'];
                 document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
