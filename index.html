@@ -21,7 +21,7 @@
             --warning: #fbbf24;
             --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
             --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
-            --sidebar-width: 220px;
+            --sidebar-width: 260px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior:smooth; }
@@ -71,7 +71,7 @@
         .new-folder-btn:hover { border-color:var(--accent); color:var(--accent-light); }
         .sidebar-divider { height:1px; background:var(--border-primary); margin:8px 16px; }
 
-        .main-content { margin-left:var(--sidebar-width); padding:40px 28px 0; max-width:960px; }
+        .main-content { margin-left:var(--sidebar-width); padding:40px 28px 0; max-width:900px; margin-right:auto; }
         .header { padding:0 0 28px; text-align:center; }
         .header-badge { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; background:var(--accent-glow); border:1px solid var(--accent-border); border-radius:100px; font-size:0.75rem; font-weight:500; color:var(--accent-light); margin-bottom:18px; letter-spacing:0.04em; font-family:'DM Mono',monospace; }
         .header-badge::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; animation:pulse 2.5s infinite; }
@@ -214,11 +214,12 @@
         .delete-confirm p { color:var(--text-secondary); margin-bottom:20px; }
 
         @media(max-width:768px){
-            .sidebar { width:100%; position:relative; top:0; border-right:none; border-bottom:1px solid var(--border-primary); }
-            .main-content { margin-left:0; }
-            .header h1{font-size:2rem;} .tools-grid{grid-template-columns:1fr;}
-            .filters{flex-direction:column;align-items:stretch;} .search-box input,.search-box input:focus{width:100%;} .filter-group{justify-content:center;}
-        }
+    .sidebar { position:fixed; top:56px; left:0; bottom:0; width:260px; transform:translateX(-100%); transition:transform 0.3s; z-index:200; border-right:1px solid var(--border-primary); border-bottom:none; }
+    .sidebar.open { transform:translateX(0); }
+    .main-content { margin-left:0; max-width:100%; }
+    .header h1{font-size:2rem;} .tools-grid{grid-template-columns:1fr;}
+    .filters{flex-direction:column;align-items:stretch;} .search-box input,.search-box input:focus{width:100%;} .filter-group{justify-content:center;}
+}
     </style>
 </head>
 <body>
@@ -242,8 +243,12 @@
 </div>
 
 <div id="userBar">
+    <button class="signout-btn" onclick="toggleSidebarMobile()" style="display:none;" id="menuBtn">☰</button>
     <span id="userEmail"></span>
-    <button class="signout-btn" id="signOutBtn">Sign out</button>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <button class="export-btn" onclick="exportJSON()" title="Export all tools to JSON" style="margin-left:0; padding:6px 14px; font-size:0.78rem;">⬇ Export JSON</button>
+        <button class="signout-btn" id="signOutBtn">Sign out</button>
+    </div>
 </div>
 
 <div class="app-layout" id="appLayout">
@@ -251,7 +256,7 @@
         <div class="sidebar-section">
             <div class="sidebar-title">Views</div>
             <div class="nav-item active" data-view="loose" onclick="switchView('loose')">
-                <span class="nav-icon">📂</span>
+                <span class="nav-icon">🧩</span>
                 <span>Loose</span>
                 <span class="nav-count" id="looseCount">0</span>
             </div>
@@ -316,7 +321,7 @@
                 </div>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-                <button class="export-btn" onclick="exportJSON()" title="Export all tools to JSON">⬇ Export JSON</button>
+                
                 <div class="view-toggle">
                     <button class="view-btn active" data-view="grid" onclick="switchDisplayMode('grid')" title="Grid view">▦</button>
                     <button class="view-btn" data-view="list" onclick="switchDisplayMode('list')" title="List view">☰</button>
@@ -392,12 +397,41 @@ function showApp(user) {
     document.getElementById('userBar').style.display = 'flex';
     document.getElementById('userEmail').textContent = user.email || user.user_metadata?.user_name || 'Signed in';
 }
+function toggleSidebarMobile() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+        if (!sidebar.contains(e.target) && e.target !== menuBtn) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
+
+// Show/hide menu button based on screen size
+window.addEventListener('resize', () => {
+    const menuBtn = document.getElementById('menuBtn');
+    if (window.innerWidth <= 768) {
+        menuBtn.style.display = 'block';
+    } else {
+        menuBtn.style.display = 'none';
+        document.getElementById('sidebar').classList.remove('open');
+    }
+});  
 
 async function init() {
     showLoading();
     const user = await getUser();
     if (user) {
         showApp(user);
+        if (window.innerWidth <= 768) {
+            document.getElementById('menuBtn').style.display = 'block';
+        }
         await loadFolders();
         await loadTools();
         renderSidebar();
