@@ -437,6 +437,7 @@ async function init() {
         if (window.innerWidth <= 768) {
             document.getElementById('menuBtn').style.display = 'block';
         }
+        await loadFolders();
         await loadTools();
         renderSidebar();
         renderTools();
@@ -472,16 +473,7 @@ async function loadFolders() {
         const { data, error } = await db.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
         if (error) throw error;
         folders = data || [];
-        localStorage.setItem('linkhouse_folders_cache', JSON.stringify(folders));
-    } catch(e) {
-        console.error('Load folders error:', e);
-        const cached = localStorage.getItem('linkhouse_folders_cache');
-        if (cached) {
-            folders = JSON.parse(cached);
-        } else {
-            folders = [];
-        }
-    }
+    } catch(e) { console.error('Load folders error:', e); folders = []; }
 }
 
 async function createFolder(name) {
@@ -631,18 +623,8 @@ async function loadTools() {
     try {
         const { data, error } = await db.from('tools').select('*').eq('user_id', user.id).order('added_at', { ascending: false });
         if (error) throw error;
-        tools = data || [];
-        localStorage.setItem('linkhouse_cache', JSON.stringify(tools));
-    } catch(e) {
-        console.error('Load error:', e);
-        const cached = localStorage.getItem('linkhouse_cache');
-        if (cached) {
-            tools = JSON.parse(cached);
-            showToast('Offline — showing cached links', 'error');
-        } else {
-            tools = [];
-        }
-    }
+        tools = (data || []).map(t => ({...t, tags: normalizeTags(t.tags)}));
+    } catch(e) { console.error('Load error:', e); tools = []; }
 }
 
 function normalizeTags(tags) {
@@ -1148,7 +1130,22 @@ document.addEventListener('keydown', e => {
     }
 });
 
-// ==================== START ====================
+// ==================== SERVICE WORKER (Offline Cache) ====================
+if ('serviceWorker' in navigator) {
+    const swCode = `
+        const CACHE_NAME = 'linkhouse-v1';
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+        self.addEventListener('fetch', e => {
+            e.respondWith(
+                fetch(e.request).catch(() => caches.match(e.request).then(r => r || new Response('Offline', {status: 503})))
+            );
+        });
+    `;
+    const blob = new Blob([swCode], {type: 'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob));
+}
+    // ==================== START ====================
 init();
 </script>
 </body>
