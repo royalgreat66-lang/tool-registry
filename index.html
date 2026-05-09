@@ -251,7 +251,7 @@
     <button class="signout-btn" onclick="toggleSidebarMobile()" style="display:none;" id="menuBtn">☰</button>
     <span id="userEmail"></span>
     <div style="display:flex; gap:10px; align-items:center;">
-        <button class="export-btn" onclick="exportJSON()" title="Export all tools to JSON" style="margin-left:0; padding:6px 14px; font-size:0.78rem;">⬇ Export JSON</button>
+        <button class="export-btn" onclick="exportJSON()" title="Export all links to JSON" style="margin-left:0; padding:6px 14px; font-size:0.78rem;">⬇ Export JSON</button>
         <button class="signout-btn" id="signOutBtn">Sign out</button>
     </div>
 </div>
@@ -290,7 +290,7 @@
             <p id="pageSubtitle">Paste any URL — it will be analyzed automatically.</p>
         </header>
         <div class="stats-bar" id="statsBar">
-            <div class="stat-item"><div class="stat-value" id="totalTools">0</div><div class="stat-label">Tools</div></div>
+            <div class="stat-item"><div class="stat-value" id="totalTools">0</div><div class="stat-label">Links</div></div>
             <div class="stat-item"><div class="stat-value" id="totalTags">0</div><div class="stat-label">Tags</div></div>
             <div class="stat-item" id="foldersStat" style="display:none"><div class="stat-value" id="totalFolders">0</div><div class="stat-label">Folders</div></div>
             <div class="stat-item"><div class="stat-value" id="lastAdded">—</div><div class="stat-label">Last Added</div></div>
@@ -312,7 +312,7 @@
         <div class="toolbar" id="toolbar">
             <div class="filters" id="filterSection">
                 <div class="filter-group" id="filterGroup">
-                    <button class="filter-btn active" data-filter="all">All Tools</button>
+                    <button class="filter-btn active" data-filter="all">All Links</button>
                     <button class="filter-btn" data-filter="ai">AI</button>
                     <button class="filter-btn" data-filter="dev">Development</button>
                     <button class="filter-btn" data-filter="productivity">Productivity</button>
@@ -322,7 +322,7 @@
                 </div>
                 <div class="search-box">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" id="searchInput" placeholder="Search tools...">
+                    <input type="text" id="searchInput" placeholder="Search Links...">
                 </div>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
@@ -342,7 +342,7 @@
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
         <div class="modal-header">
-            <h3 id="modalTitle">Review & Edit Tool</h3>
+            <h3 id="modalTitle">Review & Edit Link</h3>
             <p id="modalSubtitle">Edit any field before saving to your registry.</p>
         </div>
         <div class="modal-body" id="modalBody"></div>
@@ -695,11 +695,11 @@ function switchView(view, folderId = null) {
         filterSection.style.display = 'none';
         const folder = folders.find(f => f.id === folderId);
         document.getElementById('pageTitle').textContent = folder ? esc(folder.name) : 'Folder';
-        document.getElementById('pageSubtitle').textContent = 'Tools in this folder';
+        document.getElementById('pageSubtitle').textContent = 'Links in this folder';
     } else {
         filterSection.style.display = 'flex';
         document.getElementById('pageTitle').textContent = 'Link House';
-        document.getElementById('pageSubtitle').textContent = view === 'loose' ? 'Unfiled tools — tag and organize them' : 'All your tools across every folder';
+        document.getElementById('pageSubtitle').textContent = view === 'loose' ? 'Unfiled Links — tag and organize them' : 'All your Links across every folder';
     }
     
     renderTools();
@@ -715,7 +715,7 @@ function switchDisplayMode(mode) {
 function openModal(tool, isEditing) {
     pendingTool = { ...tool, tags: normalizeTags(tool.tags) };
     editingId = isEditing ? tool.id : null;
-    document.getElementById('modalTitle').textContent = isEditing ? 'Edit Tool' : 'Review & Edit Tool';
+    document.getElementById('modalTitle').textContent = isEditing ? 'Edit Link' : 'Review & Edit Link';
     
     const folderOptions = folders.map(f => `<option value="${f.id}" ${tool.folder_id === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('');
     
@@ -797,7 +797,7 @@ async function doSave() {
     if (!edited.name) { showToast('Please enter a name', 'error'); return; }
     if (!edited.url) { showToast('Please enter a URL', 'error'); return; }
     const exists = tools.some(t => t.url.toLowerCase() === edited.url.toLowerCase());
-    if (exists) { showToast('This tool is already in your registry', 'error'); return; }
+    if (exists) { showToast('This Link is already in your registry', 'error'); return; }
     btn.disabled = true; btn.textContent = 'Saving…';
     try {
         const newTool = { ...edited, id: crypto.randomUUID(), added_at: new Date().toISOString() };
@@ -833,7 +833,7 @@ async function doUpdate() {
     } catch(e) {
         console.error('Update error:', e);
         showToast(e.message || 'Update failed', 'error');
-        btn.disabled = false; btn.textContent = 'Update Tool';
+        btn.disabled = false; btn.textContent = 'Update Link';
     }
 }
 
@@ -844,8 +844,8 @@ async function removeToolById(id) {
     if (card) {
         card.classList.add('removing');
         setTimeout(async () => {
-            try { await deleteToolFromDB(id); tools = tools.filter(t => t.id !== id); renderSidebar(); renderTools(); updateStats(); showToast('Tool removed', 'success'); }
-            catch(e) { showToast('Could not remove tool', 'error'); }
+            try { await deleteToolFromDB(id); tools = tools.filter(t => t.id !== id); renderSidebar(); renderTools(); updateStats(); showToast('Link removed', 'success'); }
+            catch(e) { showToast('Could not remove link', 'error'); }
         }, 250);
     }
 }
@@ -895,7 +895,7 @@ function renderTools() {
 
 function renderGrid(list, grid) {
     if (!list.length) { 
-        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length === 0 ? 'Add your first tool above. Paste any URL and it will be analyzed automatically.' : 'No tools match your current filter or search.'}</p></div>`; 
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No links found</h3><p>${tools.length === 0 ? 'Add your first link above. Paste any URL and it will be analyzed automatically.' : 'No links match your current filter or search.'}</p></div>`; 
         return; 
     }
     grid.innerHTML = list.map(tool => {
@@ -929,7 +929,7 @@ function renderGrid(list, grid) {
 
 function renderList(list, listView) {
     if (!list.length) { 
-        listView.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No tools found</h3><p>${tools.length === 0 ? 'Add your first tool above.' : 'No tools match your current filter or search.'}</p></div>`; 
+        listView.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No links found</h3><p>${tools.length === 0 ? 'Add your first link above.' : 'No links match your current filter or search.'}</p></div>`; 
         return; 
     }
     listView.innerHTML = list.map(tool => {
