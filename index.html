@@ -437,7 +437,7 @@ async function init() {
         if (window.innerWidth <= 768) {
             document.getElementById('menuBtn').style.display = 'block';
         }
-        await loadFolders();
+        await ;
         await loadTools();
         renderSidebar();
         renderTools();
@@ -473,7 +473,16 @@ async function loadFolders() {
         const { data, error } = await db.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
         if (error) throw error;
         folders = data || [];
-    } catch(e) { console.error('Load folders error:', e); folders = []; }
+        localStorage.setItem('linkhouse_folders_cache', JSON.stringify(folders));
+    } catch(e) {
+        console.error('Load folders error:', e);
+        const cached = localStorage.getItem('linkhouse_folders_cache');
+        if (cached) {
+            folders = JSON.parse(cached);
+        } else {
+            folders = [];
+        }
+    }
 }
 
 async function createFolder(name) {
