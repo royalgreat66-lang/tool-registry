@@ -574,7 +574,7 @@ function deleteFolderPrompt(id) {
     document.getElementById('modalSubtitle').textContent = 'This action cannot be undone.';
     document.getElementById('modalBody').innerHTML = `
         <div class="delete-confirm">
-            <p>Delete "${esc(folder.name)}" and all <strong>${count}</strong> tools inside?</p>
+            <p>Delete "${esc(folder.name)}" and all <strong>${count}</strong> links inside?</p>
             <div class="modal-actions" style="justify-content:center; border:none; padding:0;">
                 <button class="btn-secondary" onclick="closeModal(); deleteFolderId = null;">Cancel</button>
                 <button class="btn-danger" onclick="doDeleteFolder()">Delete Forever</button>
