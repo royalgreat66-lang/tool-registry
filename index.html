@@ -554,15 +554,37 @@ function renderSidebar() {
     }).join('');
 }
 
+let renameFolderId = null;
+
 function renameFolderPrompt(id) {
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
-    const newName = prompt('New name:', folder.name);
-    if (newName && newName.trim()) {
-        renameFolder(id, newName.trim()).then(() => showToast('Folder renamed', 'success')).catch(e => showToast(e.message, 'error'));
-    }
+    renameFolderId = id;
+    document.getElementById('modalTitle').textContent = 'Rename Folder';
+    document.getElementById('modalSubtitle').textContent = 'Enter a new name for this folder.';
+    document.getElementById('modalBody').innerHTML = `
+        <div class="field-group"><label>Folder Name</label><input class="field-input" id="f-rename-name" value="${esc(folder.name)}" autofocus></div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal(); renameFolderId = null;">Cancel</button>
+            <button class="btn-save" onclick="doRenameFolder()">Rename</button>
+        </div>`;
+    document.getElementById('modalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('f-rename-name').focus(), 100);
 }
 
+async function doRenameFolder() {
+    const name = document.getElementById('f-rename-name').value.trim();
+    if (!name) { showToast('Please enter a name', 'error'); return; }
+    if (!renameFolderId) return;
+    try {
+        await renameFolder(renameFolderId, name);
+        renameFolderId = null;
+        closeModal();
+        showToast('Folder renamed', 'success');
+    } catch(e) {
+        showToast(e.message || 'Failed to rename folder', 'error');
+    }
+}
 let deleteFolderId = null;
 
 function deleteFolderPrompt(id) {
