@@ -21,7 +21,7 @@
             --warning: #fbbf24;
             --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
             --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
-            --sidebar-width: 260px;
+            --sidebar-width: 320px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior:smooth; }
@@ -71,7 +71,9 @@
         .new-folder-btn:hover { border-color:var(--accent); color:var(--accent-light); }
         .sidebar-divider { height:1px; background:var(--border-primary); margin:8px 16px; }
 
-        .main-content { margin-left:var(--sidebar-width); padding:40px 28px 0; max-width:900px; margin-right:auto; }
+        .app-layout { display:flex; }
+.sidebar { position:relative; top:0; width:var(--sidebar-width); flex-shrink:0; }
+.main-content { flex:1; padding:40px 28px 0; max-width:900px; margin:0 auto; }
         .header { padding:0 0 28px; text-align:center; }
         .header-badge { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; background:var(--accent-glow); border:1px solid var(--accent-border); border-radius:100px; font-size:0.75rem; font-weight:500; color:var(--accent-light); margin-bottom:18px; letter-spacing:0.04em; font-family:'DM Mono',monospace; }
         .header-badge::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; animation:pulse 2.5s infinite; }
@@ -502,9 +504,27 @@ async function deleteFolder(id) {
 }
 
 function createFolderPrompt() {
-    const name = prompt('Folder name:');
-    if (name && name.trim()) {
-        createFolder(name.trim()).then(() => showToast('Folder created', 'success')).catch(e => showToast(e.message, 'error'));
+    document.getElementById('modalTitle').textContent = 'Create Folder';
+    document.getElementById('modalSubtitle').textContent = 'Enter a name for your new folder.';
+    document.getElementById('modalBody').innerHTML = `
+        <div class="field-group"><label>Folder Name</label><input class="field-input" id="f-folder-name" placeholder="e.g. Work Projects" autofocus></div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-save" onclick="doCreateFolder()">Create Folder</button>
+        </div>`;
+    document.getElementById('modalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('f-folder-name').focus(), 100);
+}
+
+async function doCreateFolder() {
+    const name = document.getElementById('f-folder-name').value.trim();
+    if (!name) { showToast('Please enter a folder name', 'error'); return; }
+    try {
+        await createFolder(name);
+        closeModal();
+        showToast('Folder created', 'success');
+    } catch(e) {
+        showToast(e.message || 'Failed to create folder', 'error');
     }
 }
 
@@ -540,12 +560,36 @@ function renameFolderPrompt(id) {
     }
 }
 
+let deleteFolderId = null;
+
 function deleteFolderPrompt(id) {
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
     const count = tools.filter(t => t.folder_id === id).length;
-    if (!confirm(`Delete "${folder.name}" and all ${count} tools inside? This cannot be undone.`)) return;
-    deleteFolder(id).then(() => showToast('Folder deleted', 'success')).catch(e => showToast(e.message, 'error'));
+    deleteFolderId = id;
+    document.getElementById('modalTitle').textContent = 'Delete Folder';
+    document.getElementById('modalSubtitle').textContent = 'This action cannot be undone.';
+    document.getElementById('modalBody').innerHTML = `
+        <div class="delete-confirm">
+            <p>Delete "${esc(folder.name)}" and all <strong>${count}</strong> tools inside?</p>
+            <div class="modal-actions" style="justify-content:center; border:none; padding:0;">
+                <button class="btn-secondary" onclick="closeModal(); deleteFolderId = null;">Cancel</button>
+                <button class="btn-danger" onclick="doDeleteFolder()">Delete Forever</button>
+            </div>
+        </div>`;
+    document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function doDeleteFolder() {
+    if (!deleteFolderId) return;
+    try {
+        await deleteFolder(deleteFolderId);
+        deleteFolderId = null;
+        closeModal();
+        showToast('Folder deleted', 'success');
+    } catch(e) {
+        showToast(e.message || 'Failed to delete folder', 'error');
+    }
 }
 
 async function loadTools() {
@@ -628,6 +672,12 @@ async function extractMetadata(url) {
 function switchView(view, folderId = null) {
     currentView = view;
     currentFolderId = folderId;
+      const inputSection = document.querySelector('.input-section');
+    if (view === 'folder') {
+        inputSection.style.display = 'none';
+    } else {
+        inputSection.style.display = 'block';
+    }
     
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     if (view === 'loose') document.querySelector('[data-view="loose"]').classList.add('active');
