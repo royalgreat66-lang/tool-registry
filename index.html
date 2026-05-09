@@ -623,8 +623,18 @@ async function loadTools() {
     try {
         const { data, error } = await db.from('tools').select('*').eq('user_id', user.id).order('added_at', { ascending: false });
         if (error) throw error;
-        tools = (data || []).map(t => ({...t, tags: normalizeTags(t.tags)}));
-    } catch(e) { console.error('Load error:', e); tools = []; }
+        tools = data || [];
+        localStorage.setItem('linkhouse_cache', JSON.stringify(tools));
+    } catch(e) {
+        console.error('Load error:', e);
+        const cached = localStorage.getItem('linkhouse_cache');
+        if (cached) {
+            tools = JSON.parse(cached);
+            showToast('Offline — showing cached links', 'error');
+        } else {
+            tools = [];
+        }
+    }
 }
 
 function normalizeTags(tags) {
