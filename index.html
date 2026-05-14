@@ -470,19 +470,52 @@ async function loadFolders() {
     const user = await getUser();
     if (!user) return;
     try {
-        const { data, error } = await db.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+        const { data, error } = await db.from('folders').select('*').eq('user_id', user.id).order('usage_count', { ascending: false, nullsFirst: false });
         if (error) throw error;
-        folders = data || [];
+        folders = (data || []).map(f => ({ ...f, usage_count: f.usage_count || 0 }));
+        
+        // Migrate existing folders that don't have usage_count
+        await migrateFolderUsageCounts();
     } catch(e) { console.error('Load folders error:', e); folders = []; }
+}
+
+async function migrateFolderUsageCounts() {
+    const user = await getUser();
+    if (!user) return;
+    
+    try {
+        // Check if any folders need migration
+        const foldersNeedingMigration = folders.filter(f => f.usage_count === undefined || f.usage_count === null);
+        
+        if (foldersNeedingMigration.length > 0) {
+            console.log(`Migrating ${foldersNeedingMigration.length} folders with usage_count...`);
+            
+            for (const folder of foldersNeedingMigration) {
+                try {
+                    const { error } = await db.from('folders').update({ usage_count: 0 }).eq('id', folder.id);
+                    if (error) throw error;
+                    folder.usage_count = 0;
+                } catch(e) {
+                    console.error(`Failed to migrate folder ${folder.id}:`, e);
+                }
+            }
+            
+            // Re-sort after migration
+            folders.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0));
+            renderSidebar();
+        }
+    } catch(e) {
+        console.error('Migration error:', e);
+    }
 }
 
 async function createFolder(name) {
     const user = await getUser();
     if (!user) throw new Error('Not signed in');
-    const { data, error } = await db.from('folders').insert([{ name, user_id: user.id }]).select();
+    const { data, error } = await db.from('folders').insert([{ name, user_id: user.id, usage_count: 0 }]).select();
     if (error) throw error;
     if (data && data[0]) {
-        folders.push(data[0]);
+        folders.push({ ...data[0], usage_count: 0 });
         renderSidebar();
     }
     return data?.[0];
@@ -504,6 +537,24 @@ async function deleteFolder(id) {
     renderSidebar();
     renderTools();
     updateStats();
+}
+
+async function incrementFolderUsage(folderId) {
+    if (!folderId) return;
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder) return;
+    
+    try {
+        const newCount = (folder.usage_count || 0) + 1;
+        const { error } = await db.from('folders').update({ usage_count: newCount }).eq('id', folderId);
+        if (error) throw error;
+        folder.usage_count = newCount;
+        // Re-sort folders by usage count
+        folders.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0));
+        renderSidebar();
+    } catch(e) {
+        console.error('Failed to increment folder usage:', e);
+    }
 }
 
 function createFolderPrompt() {
@@ -700,6 +751,8 @@ function switchView(view, folderId = null) {
       const inputSection = document.querySelector('.input-section');
     if (view === 'folder') {
         inputSection.style.display = 'none';
+        // Increment usage count when accessing a folder
+        incrementFolderUsage(folderId);
     } else {
         inputSection.style.display = 'block';
     }
