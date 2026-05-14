@@ -955,7 +955,7 @@ function renderGrid(list, grid) {
         
         return `<article class="tool-card entering" data-tool-id="${tool.id}">
             <div class="card-header">
-                <div class="tool-icon fallback">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
+                <div class="tool-icon ${!tool.icon ? 'fallback' : ''}">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
                 <div class="tool-meta"><h3 class="tool-name" title="${esc(tool.name)}">${esc(tool.name)}</h3><a href="${esc(tool.url)}" target="_blank" rel="noopener" class="tool-url">${domain}</a></div>
                 ${folderBadge}
             </div>
@@ -986,7 +986,7 @@ function renderList(list, listView) {
         const folderBadge = folder && currentView !== 'folder' ? `<span class="folder-badge">${esc(folder.name)}</span>` : '';
         
         return `<div class="tool-row" data-tool-id="${tool.id}">
-            <div class="tool-icon fallback" style="width:36px;height:36px;font-size:1.1rem;">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
+            <div class="tool-icon ${!tool.icon ? 'fallback' : ''}" style="width:36px;height:36px;font-size:1.1rem;">${tool.icon ? `<img src="${iconUrl}" alt="${esc(tool.name)}" onerror="this.parentElement.classList.add('fallback');this.parentElement.textContent='${initial}';this.remove();">` : initial}</div>
             <div class="tool-meta">
                 <h3 class="tool-name">${esc(tool.name)}</h3>
                 <a href="${esc(tool.url)}" target="_blank" rel="noopener" class="tool-url">${domain}</a>
