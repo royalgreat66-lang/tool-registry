@@ -675,7 +675,7 @@ async function extractMetadata(url) {
                     tags: ['productivity'], 
                     benefits: [], 
                     url, 
-                    icon: d.data.logo?.url || d.data.image?.url || `https://www.google.com/s2/favicons?domain=${domain}`, 
+                    icon: d.data.logo?.url || d.data.image?.url || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`, 
                     source: 'Microlink',
                     folder_id: null
                 };
@@ -688,7 +688,7 @@ async function extractMetadata(url) {
         tags: ['productivity'], 
         benefits: [], 
         url, 
-        icon: `https://www.google.com/s2/favicons?domain=${domain}`, 
+        icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`, 
         source: 'Manual',
         folder_id: null
     };
@@ -922,7 +922,7 @@ function renderGrid(list, grid) {
     }
     grid.innerHTML = list.map(tool => {
         const domain = (() => { try { return new URL(tool.url).hostname; } catch { return tool.url; } })();
-        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}`;
+        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
         const initial = (tool.name || '?').charAt(0).toUpperCase();
         const timeAgo = getTimeAgo(new Date(tool.added_at));
         const toolTags = normalizeTags(tool.tags);
@@ -956,7 +956,7 @@ function renderList(list, listView) {
     }
     listView.innerHTML = list.map(tool => {
         const domain = (() => { try { return new URL(tool.url).hostname; } catch { return tool.url; } })();
-        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}`;
+        const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
         const initial = (tool.name || '?').charAt(0).toUpperCase();
         const folder = folders.find(f => f.id === tool.folder_id);
         const folderBadge = folder && currentView !== 'folder' ? `<span class="folder-badge">${esc(folder.name)}</span>` : '';
