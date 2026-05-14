@@ -662,27 +662,6 @@ async function deleteToolFromDB(id) {
     if (error) throw error;
 }
 
-async function fetchFavicon(domain) {
-    const faviconServices = [
-        `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-        `https://duckduckgo.com/ip3/${domain}.ico`,
-        `https://api.faviconkit.com/${domain}/128`,
-        `https://favicons.githubusercontent.com/${domain}`
-    ];
-
-    for (const serviceUrl of faviconServices) {
-        try {
-            const response = await fetch(serviceUrl, { method: 'HEAD' });
-            if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-                return serviceUrl;
-            }
-        } catch (e) {
-            continue;
-        }
-    }
-    return null;
-}
-
 async function extractMetadata(url) {
     const domain = (() => { try { return new URL(url).hostname; } catch { return url; } })();
     try {
@@ -690,29 +669,26 @@ async function extractMetadata(url) {
         if (r.ok) {
             const d = await r.json();
             if (d.status === 'success' && d.data) {
-                const microlinkIcon = d.data.logo?.url || d.data.image?.url;
-                const fallbackIcon = await fetchFavicon(domain);
                 return { 
                     name: d.data.title ? d.data.title.split(/[|–—·]/)[0].trim() : domain, 
                     description: d.data.description || '', 
                     tags: ['productivity'], 
                     benefits: [], 
                     url, 
-                    icon: microlinkIcon || fallbackIcon || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
+                    icon: d.data.logo?.url || d.data.image?.url || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
                     source: 'Microlink',
                     folder_id: null
                 };
             }
         }
     } catch(e) {}
-    const fallbackIcon = await fetchFavicon(domain);
     return { 
         name: '', 
         description: '', 
         tags: ['productivity'], 
         benefits: [], 
         url, 
-        icon: fallbackIcon || `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
+        icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`, 
         source: 'Manual',
         folder_id: null
     };
