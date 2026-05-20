@@ -137,6 +137,7 @@ export function AppProvider({ children }) {
         if (!currentUser) throw new Error('Not signed in — please refresh the page');
         const { error } = await db.from('tools').insert([{ ...tool, user_id: currentUser.id }]);
         if (error) throw error;
+        await loadTools();
     }
 
     // Update existing tool
@@ -149,6 +150,7 @@ export function AppProvider({ children }) {
             source: tool.source, folder_id: tool.folder_id 
         }).eq('id', tool.id);
         if (error) throw error;
+        await loadTools();
     }
 
     // Delete tool
@@ -157,6 +159,7 @@ export function AppProvider({ children }) {
         if (!currentUser) throw new Error('Not signed in — please refresh the page');
         const { error } = await db.from('tools').delete().eq('id', id);
         if (error) throw error;
+        await loadTools();
     }
 
     // Initialize app

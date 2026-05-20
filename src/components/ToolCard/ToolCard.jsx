@@ -1,9 +1,21 @@
+import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc, normalizeTags, TAG_LABELS, getTimeAgo } from '../../utils/helpers';
 import './ToolCard.css';
 
 export default function ToolCard({ tool, editTool, removeToolById }) {
     const { folders, currentView } = useApp();
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await removeToolById(tool.id);
+        } catch (error) {
+            console.error('Delete error:', error);
+            setIsDeleting(false);
+        }
+    };
 
     const domain = (() => { try { return new URL(tool.url).hostname; } catch { return tool.url; } })();
     const iconUrl = tool.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
@@ -51,7 +63,9 @@ export default function ToolCard({ tool, editTool, removeToolById }) {
                 <div className="tool-actions">
                     <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit">↗</button>
                     <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit">✎</button>
-                    <button className="action-btn" onClick={() => removeToolById(tool.id)} title="Remove">✕</button>
+                    <button className="action-btn" onClick={handleDelete} disabled={isDeleting} title="Remove">
+                        {isDeleting ? <span className="btn-spinner"></span> : '✕'}
+                    </button>
                 </div>
             </div>
         </article>

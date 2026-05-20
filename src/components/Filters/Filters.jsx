@@ -12,13 +12,12 @@ export default function Filters() {
             const newFilters = activeFilters.filter(f => f !== 'all');
             
             if (newFilters.includes(filter)) {
-                setActiveFilters(newFilters.filter(f => f !== filter));
+                // Remove the filter if already selected
+                const updated = newFilters.filter(f => f !== filter);
+                setActiveFilters(updated.length === 0 ? ['all'] : updated);
             } else {
+                // Add the filter
                 setActiveFilters([...newFilters, filter]);
-            }
-            
-            if (activeFilters.filter(f => f !== 'all').length === 0 && !newFilters.includes(filter)) {
-                setActiveFilters(['all']);
             }
         }
     };

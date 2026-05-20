@@ -1,0 +1,12 @@
+.folder-modal {
+    max-width: 400px;
+}
+
+.folder-modal .modal-header h3 {
+    font-size: 1.1rem;
+}
+
+.folder-modal .modal-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}

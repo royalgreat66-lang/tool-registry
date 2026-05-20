@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { extractMetadata, normalizeTags } from './utils/helpers';
 import LoadingScreen from './components/LoadingScreen/LoadingScreen';
@@ -74,6 +74,9 @@ function AppContent() {
     const switchView = (view, folderId = null) => {
         setCurrentView(view);
         setCurrentFolderId(folderId);
+        if (view === 'folder' && folderId) {
+            incrementFolderUsage(folderId);
+        }
     };
 
     const handleSubmit = async (url) => {
@@ -217,7 +220,7 @@ function AppContent() {
         
         if (!activeFilters.includes('all')) {
             f = f.filter(t => {
-                const toolTags = normalizeTags(t.tags);
+                const toolTags = Array.isArray(t.tags) ? t.tags : [];
                 return activeFilters.every(filter => toolTags.includes(filter));
             });
         }
@@ -233,7 +236,7 @@ function AppContent() {
         return f;
     };
 
-    const filteredTools = getFiltered();
+    const filteredTools = useMemo(() => getFiltered(), [tools, currentView, currentFolderId, activeFilters, searchQuery]);
 
     if (loading) {
         return <LoadingScreen />;
@@ -256,9 +259,9 @@ function AppContent() {
             <div className="app-layout" id="appLayout">
                 <Sidebar 
                     switchView={switchView}
-                    createFolderPrompt={createFolderPrompt}
-                    renameFolderPrompt={renameFolderPrompt}
-                    deleteFolderPrompt={deleteFolderPrompt}
+                    createFolder={createFolder}
+                    renameFolder={renameFolder}
+                    deleteFolder={deleteFolder}
                 />
                 
                 <main className="main-content" id="mainContent">

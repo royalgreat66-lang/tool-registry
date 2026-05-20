@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc, ALL_TAGS, TAG_LABELS } from '../../utils/helpers';
 import './Modal.css';
 
 export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpdate }) {
     const { folders } = useApp();
+    const [isSaving, setIsSaving] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const selectedTags = Array.from(document.querySelectorAll('#f-tags .tag-pill-btn.selected')).map(btn => btn.dataset.tag);
@@ -24,10 +26,17 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
             source: tool.source
         };
 
-        if (isEditing) {
-            doUpdate({ ...tool, ...data });
-        } else {
-            doSave({ ...tool, ...data });
+        setIsSaving(true);
+        try {
+            if (isEditing) {
+                await doUpdate({ ...tool, ...data });
+            } else {
+                await doSave({ ...tool, ...data });
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -103,8 +112,10 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                             </button>
                         </div>
                         <div className="modal-actions">
-                            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-                            <button type="submit" className="btn-save">{isEditing ? 'Update Tool' : 'Save to Registry'}</button>
+                            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSaving}>Cancel</button>
+                            <button type="submit" className="btn-save" disabled={isSaving}>
+                                {isSaving ? <span className="btn-spinner"></span> : (isEditing ? 'Update Tool' : 'Save to Registry')}
+                            </button>
                         </div>
                     </form>
                 </div>

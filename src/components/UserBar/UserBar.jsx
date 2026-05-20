@@ -1,15 +1,30 @@
+import { useState } from 'react';
 import { db } from '../../utils/supabase';
 import { useApp } from '../../context/AppContext';
 import './UserBar.css';
 
 export default function UserBar({ toggleSidebarMobile, exportJSON }) {
     const { user } = useApp();
+    const [isSigningOut, setIsSigningOut] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const handleSignOut = async () => {
+        setIsSigningOut(true);
         try { 
             await db.auth.signOut(); 
         } catch(e) {}
         window.location.reload();
+    };
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportJSON();
+        } catch(e) {
+            console.error('Export error:', e);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -26,14 +41,15 @@ export default function UserBar({ toggleSidebarMobile, exportJSON }) {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button 
                     className="export-btn" 
-                    onClick={exportJSON} 
+                    onClick={handleExport} 
+                    disabled={isExporting}
                     title="Export all links to JSON" 
                     style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '0.78rem' }}
                 >
-                    ⬇ Export JSON
+                    {isExporting ? <span className="btn-spinner"></span> : '⬇ Export JSON'}
                 </button>
-                <button className="signout-btn" id="signOutBtn" onClick={handleSignOut}>
-                    Sign out
+                <button className="signout-btn" id="signOutBtn" onClick={handleSignOut} disabled={isSigningOut}>
+                    {isSigningOut ? <span className="btn-spinner"></span> : 'Sign out'}
                 </button>
             </div>
         </div>
