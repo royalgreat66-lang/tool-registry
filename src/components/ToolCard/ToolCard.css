@@ -1,0 +1,241 @@
+.tool-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tool-card:hover {
+    border-color: var(--border-secondary);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.tool-card:hover::before {
+    opacity: 1;
+}
+
+.tool-card.entering {
+    animation: cardIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tool-card.removing {
+    animation: cardOut 0.25s ease forwards;
+}
+
+@keyframes cardOut {
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+.card-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.tool-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.tool-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tool-icon.fallback {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    border: none;
+}
+
+.tool-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.tool-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tool-url {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.tool-url:hover {
+    color: var(--accent-light);
+}
+
+.tool-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.75;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tool-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag-pill {
+    padding: 3px 11px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+}
+
+.tag-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent-light);
+    background: var(--accent-glow);
+}
+
+.folder-badge {
+    padding: 2px 8px;
+    background: rgba(91, 106, 240, 0.15);
+    border: 1px solid rgba(91, 106, 240, 0.3);
+    border-radius: 100px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--accent-light);
+    margin-left: auto;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-primary);
+    margin-top: auto;
+}
+
+.tool-source {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.source-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.tool-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-size: 0.85rem;
+}
+
+.action-btn:hover {
+    border-color: var(--error);
+    color: var(--error);
+    background: var(--error-glow);
+}
+
+.action-btn.visit:hover {
+    border-color: var(--accent);
+    color: var(--accent-light);
+    background: var(--accent-glow);
+}
+
+.action-btn.edit:hover {
+    border-color: var(--warning);
+    color: var(--warning);
+    background: rgba(251, 191, 36, 0.1);
+}
+
+@media(max-width: 768px) {
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+}

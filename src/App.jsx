@@ -1,0 +1,316 @@
+import { useState, useEffect } from 'react';
+import { AppProvider, useApp } from './context/AppContext';
+import { extractMetadata, normalizeTags } from './utils/helpers';
+import LoadingScreen from './components/LoadingScreen/LoadingScreen';
+import AuthScreen from './components/AuthScreen/AuthScreen';
+import UserBar from './components/UserBar/UserBar';
+import Sidebar from './components/Sidebar/Sidebar';
+import Header from './components/Header/Header';
+import StatsBar from './components/StatsBar/StatsBar';
+import UrlInput from './components/UrlInput/UrlInput';
+import Filters from './components/Filters/Filters';
+import ToolCard from './components/ToolCard/ToolCard';
+import ToolRow from './components/ToolRow/ToolRow';
+import Modal from './components/Modal/Modal';
+import ToastContainer from './components/ToastContainer/ToastContainer';
+import EmptyState from './components/EmptyState/EmptyState';
+import './main.css';
+
+function AppContent() {
+    const { 
+        user, loading, tools, folders, currentView, currentFolderId, 
+        activeFilters, searchQuery, displayMode, 
+        setCurrentView, setCurrentFolderId, setActiveFilters, setSearchQuery, setDisplayMode,
+        insertTool, updateToolInDB, deleteToolFromDB, createFolder, renameFolder, deleteFolder,
+        getUser
+    } = useApp();
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalTool, setModalTool] = useState(null);
+    const [modalEditing, setModalEditing] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const menuBtn = document.getElementById('menuBtn');
+            if (window.innerWidth <= 768) {
+                if (menuBtn) menuBtn.style.display = 'block';
+            } else {
+                if (menuBtn) menuBtn.style.display = 'none';
+                setSidebarOpen(false);
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('menuBtn');
+            if (window.innerWidth <= 768 && sidebarOpen) {
+                if (sidebar && !sidebar.contains(e.target) && e.target !== menuBtn) {
+                    setSidebarOpen(false);
+                }
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [sidebarOpen]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setModalOpen(false);
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    const toggleSidebarMobile = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
+
+    const switchView = (view, folderId = null) => {
+        setCurrentView(view);
+        setCurrentFolderId(folderId);
+    };
+
+    const handleSubmit = async (url) => {
+        try {
+            const metadata = await extractMetadata(url);
+            if (currentView === 'folder' && currentFolderId) {
+                metadata.folder_id = currentFolderId;
+            }
+            setModalTool(metadata);
+            setModalEditing(false);
+            setModalOpen(true);
+        } catch(err) {
+            const fallback = {
+                name: '',
+                description: '',
+                tags: ['productivity'],
+                benefits: [],
+                url,
+                icon: '',
+                source: 'Manual',
+                folder_id: currentView === 'folder' ? currentFolderId : null
+            };
+            setModalTool(fallback);
+            setModalEditing(false);
+            setModalOpen(true);
+        }
+    };
+
+    const doSave = async (tool) => {
+        try {
+            const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const newTool = { ...tool, id: generateId(), added_at: new Date().toISOString() };
+            await insertTool(newTool);
+            window.showToast(`${tool.name} added to registry`, 'success');
+            setModalOpen(false);
+        } catch(e) {
+            window.showToast(e.message || 'Save failed', 'error');
+        }
+    };
+
+    const doUpdate = async (tool) => {
+        try {
+            await updateToolInDB(tool);
+            window.showToast(`${tool.name} updated`, 'success');
+            setModalOpen(false);
+        } catch(e) {
+            window.showToast(e.message || 'Update failed', 'error');
+        }
+    };
+
+    const editTool = (id) => {
+        const tool = tools.find(t => t.id === id);
+        if (tool) {
+            setModalTool({ ...tool, tags: normalizeTags(tool.tags) });
+            setModalEditing(true);
+            setModalOpen(true);
+        }
+    };
+
+    const removeToolById = async (id) => {
+        try {
+            await deleteToolFromDB(id);
+            window.showToast('Link removed', 'success');
+        } catch(e) {
+            window.showToast('Could not remove link', 'error');
+        }
+    };
+
+    const createFolderPrompt = () => {
+        const name = prompt('Enter a name for your new folder:');
+        if (name) {
+            createFolder(name).then(() => {
+                window.showToast('Folder created', 'success');
+            }).catch(e => {
+                window.showToast(e.message || 'Failed to create folder', 'error');
+            });
+        }
+    };
+
+    const renameFolderPrompt = (id) => {
+        const folder = folders.find(f => f.id === id);
+        if (folder) {
+            const newName = prompt('Enter a new name for this folder:', folder.name);
+            if (newName) {
+                renameFolder(id, newName).then(() => {
+                    window.showToast('Folder renamed', 'success');
+                }).catch(e => {
+                    window.showToast(e.message || 'Failed to rename folder', 'error');
+                });
+            }
+        }
+    };
+
+    const deleteFolderPrompt = (id) => {
+        const folder = folders.find(f => f.id === id);
+        if (folder) {
+            const count = tools.filter(t => t.folder_id === id).length;
+            if (confirm(`Delete "${folder.name}" and all ${count} links inside?`)) {
+                deleteFolder(id).then(() => {
+                    window.showToast('Folder deleted', 'success');
+                }).catch(e => {
+                    window.showToast(e.message || 'Failed to delete folder', 'error');
+                });
+            }
+        }
+    };
+
+    const exportJSON = () => {
+        const data = tools.map(t => ({
+            name: t.name,
+            url: t.url,
+            description: t.description,
+            tags: normalizeTags(t.tags),
+            benefits: t.benefits || [],
+            icon: t.icon,
+            source: t.source,
+            folder_id: t.folder_id,
+            added_at: t.added_at
+        }));
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tool-registry-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        window.showToast('JSON exported successfully', 'success');
+    };
+
+    const getFiltered = () => {
+        let f = tools;
+        
+        if (currentView === 'loose') {
+            f = f.filter(t => !t.folder_id);
+        } else if (currentView === 'folder') {
+            f = f.filter(t => t.folder_id === currentFolderId);
+        }
+        
+        if (!activeFilters.includes('all')) {
+            f = f.filter(t => {
+                const toolTags = normalizeTags(t.tags);
+                return activeFilters.every(filter => toolTags.includes(filter));
+            });
+        }
+        
+        if (searchQuery) { 
+            const q = searchQuery.toLowerCase(); 
+            f = f.filter(t => 
+                (t.name || '').toLowerCase().includes(q) || 
+                (t.description || '').toLowerCase().includes(q) || 
+                (t.benefits || []).some(b => b.toLowerCase().includes(q))
+            ); 
+        }
+        return f;
+    };
+
+    const filteredTools = getFiltered();
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
+    if (!user) {
+        return <AuthScreen />;
+    }
+
+    return (
+        <>
+            <div className="bg-noise"></div>
+            <div className="bg-glow"></div>
+            
+            <UserBar 
+                toggleSidebarMobile={toggleSidebarMobile} 
+                exportJSON={exportJSON}
+            />
+            
+            <div className="app-layout" id="appLayout">
+                <Sidebar 
+                    switchView={switchView}
+                    createFolderPrompt={createFolderPrompt}
+                    renameFolderPrompt={renameFolderPrompt}
+                    deleteFolderPrompt={deleteFolderPrompt}
+                />
+                
+                <main className="main-content" id="mainContent">
+                    <Header />
+                    <StatsBar />
+                    <UrlInput handleSubmit={handleSubmit} />
+                    <Filters />
+                    
+                    {displayMode === 'grid' ? (
+                        <div className="tools-grid" id="toolsGrid">
+                            {filteredTools.length === 0 ? (
+                                <EmptyState />
+                            ) : (
+                                filteredTools.map(tool => (
+                                    <ToolCard key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} />
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="tools-list" id="toolsList">
+                            {filteredTools.length === 0 ? (
+                                <EmptyState />
+                            ) : (
+                                filteredTools.map(tool => (
+                                    <ToolRow key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} />
+                                ))
+                            )}
+                        </div>
+                    )}
+                </main>
+            </div>
+            
+            <Modal 
+                isOpen={modalOpen} 
+                onClose={() => setModalOpen(false)} 
+                tool={modalTool || {}} 
+                isEditing={modalEditing}
+                doSave={doSave}
+                doUpdate={doUpdate}
+            />
+            
+            <ToastContainer />
+        </>
+    );
+}
+
+function App() {
+    return (
+        <AppProvider>
+            <AppContent />
+        </AppProvider>
+    );
+}
+
+export default App;
