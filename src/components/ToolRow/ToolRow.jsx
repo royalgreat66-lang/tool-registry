@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc } from '../../utils/helpers';
+import Spinner from '../Spinner/Spinner';
 import './ToolRow.css';
 
 export default function ToolRow({ tool, editTool, removeToolById }) {
@@ -49,7 +50,7 @@ export default function ToolRow({ tool, editTool, removeToolById }) {
                 <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" style={{ width: '28px', height: '28px' }}>↗</button>
                 <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" style={{ width: '28px', height: '28px' }}>✎</button>
                 <button className="action-btn" onClick={handleDelete} disabled={isDeleting} title="Remove" style={{ width: '28px', height: '28px' }}>
-                    {isDeleting ? <span className="btn-spinner"></span> : '✕'}
+                    {isDeleting ? <Spinner /> : '✕'}
                 </button>
             </div>
         </div>

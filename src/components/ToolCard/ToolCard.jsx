@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc, normalizeTags, TAG_LABELS, getTimeAgo } from '../../utils/helpers';
+import Spinner from '../Spinner/Spinner';
 import './ToolCard.css';
 
 export default function ToolCard({ tool, editTool, removeToolById }) {
@@ -64,7 +65,7 @@ export default function ToolCard({ tool, editTool, removeToolById }) {
                     <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit">↗</button>
                     <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit">✎</button>
                     <button className="action-btn" onClick={handleDelete} disabled={isDeleting} title="Remove">
-                        {isDeleting ? <span className="btn-spinner"></span> : '✕'}
+                        {isDeleting ? <Spinner /> : '✕'}
                     </button>
                 </div>
             </div>

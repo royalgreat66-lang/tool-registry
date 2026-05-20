@@ -24,7 +24,6 @@ export default function Header() {
 
     return (
         <header className="header">
-            <div className="header-badge">Microlink Metadata</div>
             <h1 id="pageTitle">{getTitle()}</h1>
             <p id="pageSubtitle">{getSubtitle()}</p>
         </header>

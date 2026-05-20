@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc, ALL_TAGS, TAG_LABELS } from '../../utils/helpers';
+import Spinner from '../Spinner/Spinner';
 import './Modal.css';
 
 export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpdate }) {
@@ -114,7 +115,7 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                         <div className="modal-actions">
                             <button type="button" className="btn-secondary" onClick={onClose} disabled={isSaving}>Cancel</button>
                             <button type="submit" className="btn-save" disabled={isSaving}>
-                                {isSaving ? <span className="btn-spinner"></span> : (isEditing ? 'Update Tool' : 'Save to Registry')}
+                                {isSaving ? <Spinner /> : (isEditing ? 'Update Tool' : 'Save to Registry')}
                             </button>
                         </div>
                     </form>

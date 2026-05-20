@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { db } from '../../utils/supabase';
+import Spinner from '../Spinner/Spinner';
 import './AuthScreen.css';
 
 export default function AuthScreen() {
@@ -30,7 +31,7 @@ export default function AuthScreen() {
             </div>
             <button className="github-btn" onClick={handleGitHubSignIn} disabled={isLoading}>
                 {isLoading ? (
-                    <span className="btn-spinner"></span>
+                    <Spinner />
                 ) : (
                     <>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
