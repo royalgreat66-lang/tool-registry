@@ -47,10 +47,10 @@ export default function UserBar({ toggleSidebarMobile, exportJSON }) {
                     title="Export all links to JSON" 
                     style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '0.78rem' }}
                 >
-                    {isExporting ? <Spinner /> : '⬇ Export JSON'}
+                    {isExporting ? <span className="btn-spinner"></span> : '⬇ Export JSON'}
                 </button>
                 <button className="signout-btn" id="signOutBtn" onClick={handleSignOut} disabled={isSigningOut}>
-                    {isSigningOut ? <Spinner /> : 'Sign out'}
+                    {isSigningOut ? <span className="btn-spinner"></span> : 'Sign out'}
                 </button>
             </div>
         </div>

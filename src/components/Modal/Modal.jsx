@@ -115,7 +115,7 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                         <div className="modal-actions">
                             <button type="button" className="btn-secondary" onClick={onClose} disabled={isSaving}>Cancel</button>
                             <button type="submit" className="btn-save" disabled={isSaving}>
-                                {isSaving ? <Spinner /> : (isEditing ? 'Update Tool' : 'Save to Registry')}
+                                {isSaving ? <span className="btn-spinner"></span> : (isEditing ? 'Update Tool' : 'Save to Registry')}
                             </button>
                         </div>
                     </form>
