@@ -139,7 +139,7 @@ function AppContent() {
     const removeToolById = async (id) => {
         try {
             await deleteToolFromDB(id);
-            window.showToast('Link removed', 'success');
+            window.showToast('Link removed', 'error');
         } catch(e) {
             window.showToast('Could not remove link', 'error');
         }
@@ -176,7 +176,7 @@ function AppContent() {
             const count = tools.filter(t => t.folder_id === id).length;
             if (confirm(`Delete "${folder.name}" and all ${count} links inside?`)) {
                 deleteFolder(id).then(() => {
-                    window.showToast('Folder deleted', 'success');
+                    window.showToast('Folder deleted', 'error');
                 }).catch(e => {
                     window.showToast(e.message || 'Failed to delete folder', 'error');
                 });
