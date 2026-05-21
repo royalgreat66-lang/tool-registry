@@ -32,6 +32,7 @@ export default function FolderModal({ isOpen, onClose, onSave }) {
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="e.g., Design Tools"
                                 autoFocus
+                                autoComplete="off"
                             />
                         </div>
                         <div className="modal-actions">

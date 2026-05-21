@@ -56,11 +56,11 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                     <form onSubmit={handleSubmit}>
                         <div className="field-group">
                             <label>Name</label>
-                            <input name="name" className="field-input" defaultValue={tool.name} placeholder="Tool name" />
+                            <input name="name" className="field-input" defaultValue={tool.name} placeholder="Tool name" autoComplete="off" />
                         </div>
                         <div className="field-group">
                             <label>URL</label>
-                            <input name="url" className="field-input" defaultValue={tool.url} placeholder="https://..." />
+                            <input name="url" className="field-input" defaultValue={tool.url} placeholder="https://..." autoComplete="off" />
                         </div>
                         <div className="field-group">
                             <label>Description</label>
@@ -94,7 +94,7 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                             <div className="benefits-editor" id="f-benefits">
                                 {(tool.benefits || []).map((b, i) => (
                                     <div key={i} className="benefit-input-row">
-                                        <input className="field-input" defaultValue={b} placeholder="e.g. Real-time collaboration" />
+                                        <input className="field-input" defaultValue={b} placeholder="e.g. Real-time collaboration" autoComplete="off" />
                                         <button type="button" className="remove-benefit-btn" onClick={(e) => e.target.parentElement.remove()}>✕</button>
                                     </div>
                                 ))}
@@ -103,7 +103,7 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
                                 const container = document.getElementById('f-benefits');
                                 const div = document.createElement('div');
                                 div.className = 'benefit-input-row';
-                                div.innerHTML = '<input class="field-input" placeholder="e.g. Real-time collaboration" /><button type="button" class="remove-benefit-btn" onclick="this.parentElement.remove()">✕</button>';
+                                div.innerHTML = '<input class="field-input" placeholder="e.g. Real-time collaboration" autocomplete="off" /><button type="button" class="remove-benefit-btn" onclick="this.parentElement.remove()">✕</button>';
                                 container.appendChild(div);
                             }}>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

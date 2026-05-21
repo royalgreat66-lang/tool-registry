@@ -56,6 +56,7 @@ export default function Filters() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search Links..."
+                        autoComplete="off"
                     />
                 </div>
             </div>

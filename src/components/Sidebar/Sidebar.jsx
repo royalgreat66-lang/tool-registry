@@ -72,7 +72,7 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
                 <div className="sidebar-divider"></div>
                 <div className="sidebar-section">
                     <div className="sidebar-title">Folders</div>
-                    <input type="text" className="folder-search" id="folderSearch" placeholder="Search folders..." />
+                    <input type="text" className="folder-search" id="folderSearch" placeholder="Search folders..." autoComplete="off" />
                     <div id="folderList">
                         {folders.map(folder => {
                             const count = tools.filter(t => t.folder_id === folder.id).length;
