@@ -7,6 +7,7 @@ import './Modal.css';
 export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpdate }) {
     const { folders } = useApp();
     const [isSaving, setIsSaving] = useState(false);
+    const [isSelectingText, setIsSelectingText] = useState(false);
 
     if (!isOpen) return null;
 
@@ -46,8 +47,16 @@ export default function Modal({ isOpen, onClose, tool, isEditing, doSave, doUpda
     ));
 
     return (
-        <div className="modal-overlay active" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay active" onClick={(e) => {
+            if (!isSelectingText) onClose();
+        }}>
+            <div 
+                className="modal" 
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={() => setIsSelectingText(true)}
+                onMouseUp={() => setIsSelectingText(false)}
+                onMouseLeave={() => setIsSelectingText(false)}
+            >
                 <div className="modal-header">
                     <h3>{isEditing ? 'Edit Link' : 'Review & Edit Link'}</h3>
                     <p>Edit any field before saving to your registry.</p>
