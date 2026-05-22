@@ -26,7 +26,8 @@ function AppContent() {
         setCurrentView, setCurrentFolderId, setActiveFilters, setSearchQuery, setDisplayMode,
         insertTool, updateToolInDB, deleteToolFromDB, createFolder, renameFolder, deleteFolder,
         getUser,
-        selectMode, selectedItems, toggleSelectMode, clearSelection, toggleSelection
+        selectMode, selectedItems, toggleSelectMode, clearSelection, toggleSelection,
+        incrementFolderUsage
     } = useApp();
 
     const [modalOpen, setModalOpen] = useState(false);
