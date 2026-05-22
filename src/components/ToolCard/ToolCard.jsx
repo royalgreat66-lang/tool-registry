@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { esc, normalizeTags, TAG_LABELS, getTimeAgo } from '../../utils/helpers';
 import Spinner from '../Spinner/Spinner';
@@ -7,6 +7,9 @@ import './ToolCard.css';
 export default function ToolCard({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection }) {
     const { folders, currentView } = useApp();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [rotateX, setRotateX] = useState(0);
+    const [rotateY, setRotateY] = useState(0);
+    const cardRef = useRef(null);
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -30,17 +33,53 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
 
     const isSelected = selectedItems && selectedItems.has(tool.id);
 
+    const handleMouseMove = (e) => {
+        if (selectMode) return;
+
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateYValue = ((x - centerX) / centerX) * 20;
+        const rotateXValue = -((y - centerY) / centerY) * 20;
+
+        setRotateX(rotateXValue);
+        setRotateY(rotateYValue);
+    };
+
+    const handleMouseLeave = () => {
+        setRotateX(0);
+        setRotateY(0);
+    };
+
     const handleCardClick = () => {
         if (selectMode) {
             toggleSelection(tool.id);
         }
     };
 
+    useEffect(() => {
+        if (cardRef.current && !selectMode) {
+            cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            cardRef.current.style.transition = 'transform 0.1s ease-out';
+        } else if (cardRef.current) {
+            cardRef.current.style.transform = '';
+            cardRef.current.style.transition = '';
+        }
+    }, [rotateX, rotateY, selectMode]);
+
     return (
         <article
+            ref={cardRef}
             className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`}
             data-tool-id={tool.id}
             onClick={handleCardClick}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
         >
             <div className="card-header">
                 <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`}>
