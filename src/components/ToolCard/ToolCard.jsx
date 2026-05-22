@@ -35,8 +35,18 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
         toggleSelection(tool.id);
     };
 
+    const handleCardClick = () => {
+        if (selectMode) {
+            toggleSelection(tool.id);
+        }
+    };
+
     return (
-        <article className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`} data-tool-id={tool.id}>
+        <article
+            className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`}
+            data-tool-id={tool.id}
+            onClick={handleCardClick}
+        >
             <div className="card-header">
                 {selectMode && (
                     <input

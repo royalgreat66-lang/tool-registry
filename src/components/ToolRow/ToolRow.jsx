@@ -33,8 +33,18 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
         toggleSelection(tool.id);
     };
 
+    const handleRowClick = () => {
+        if (selectMode) {
+            toggleSelection(tool.id);
+        }
+    };
+
     return (
-        <div className={`tool-row ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`} data-tool-id={tool.id}>
+        <div
+            className={`tool-row ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`}
+            data-tool-id={tool.id}
+            onClick={handleRowClick}
+        >
             {selectMode && (
                 <input
                     type="checkbox"

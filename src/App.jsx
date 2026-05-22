@@ -35,6 +35,7 @@ function AppContent() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [folderPickerOpen, setFolderPickerOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -216,15 +217,20 @@ function AppContent() {
     };
 
     const handleBulkDelete = async () => {
+        setIsBulkDeleting(true);
         try {
+            const count = selectedItems.size;
             for (const toolId of selectedItems) {
                 await deleteToolFromDB(toolId);
             }
             clearSelection();
             toggleSelectMode();
-            window.showToast(`${selectedItems.size} items deleted`, 'error');
+            setConfirmDeleteOpen(false);
+            window.showToast(`${count} items deleted`, 'error');
         } catch (e) {
             window.showToast('Failed to delete items', 'error');
+        } finally {
+            setIsBulkDeleting(false);
         }
     };
 
@@ -339,6 +345,7 @@ function AppContent() {
             <BulkActionBar
                 onDeleteClick={() => setConfirmDeleteOpen(true)}
                 onMoveToFolderClick={() => setFolderPickerOpen(true)}
+                isDeleting={isBulkDeleting}
             />
 
             <FolderPickerModal
