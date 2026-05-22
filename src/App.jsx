@@ -12,23 +12,29 @@ import Filters from './components/Filters/Filters';
 import ToolCard from './components/ToolCard/ToolCard';
 import ToolRow from './components/ToolRow/ToolRow';
 import Modal from './components/Modal/Modal';
+import BulkActionBar from './components/BulkActionBar/BulkActionBar';
+import FolderPickerModal from './components/FolderPickerModal/FolderPickerModal';
+import ConfirmModal from './components/ConfirmModal/ConfirmModal';
 import ToastContainer from './components/ToastContainer/ToastContainer';
 import EmptyState from './components/EmptyState/EmptyState';
 import './main.css';
 
 function AppContent() {
-    const { 
-        user, loading, tools, folders, currentView, currentFolderId, 
-        activeFilters, searchQuery, displayMode, 
+    const {
+        user, loading, tools, folders, currentView, currentFolderId,
+        activeFilters, searchQuery, displayMode,
         setCurrentView, setCurrentFolderId, setActiveFilters, setSearchQuery, setDisplayMode,
         insertTool, updateToolInDB, deleteToolFromDB, createFolder, renameFolder, deleteFolder,
-        getUser
+        getUser,
+        selectMode, selectedItems, toggleSelectMode, clearSelection, toggleSelection
     } = useApp();
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTool, setModalTool] = useState(null);
     const [modalEditing, setModalEditing] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [folderPickerOpen, setFolderPickerOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -196,7 +202,7 @@ function AppContent() {
             folder_id: t.folder_id,
             added_at: t.added_at
         }));
-        
+
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -207,6 +213,33 @@ function AppContent() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         window.showToast('JSON exported successfully', 'success');
+    };
+
+    const handleBulkDelete = async () => {
+        try {
+            for (const toolId of selectedItems) {
+                await deleteToolFromDB(toolId);
+            }
+            clearSelection();
+            toggleSelectMode();
+            window.showToast(`${selectedItems.size} items deleted`, 'error');
+        } catch (e) {
+            window.showToast('Failed to delete items', 'error');
+        }
+    };
+
+    const handleMoveToFolder = async (folderId) => {
+        try {
+            const itemsToUpdate = tools.filter(t => selectedItems.has(t.id));
+            for (const tool of itemsToUpdate) {
+                await updateToolInDB({ ...tool, folder_id: folderId });
+            }
+            clearSelection();
+            toggleSelectMode();
+            window.showToast(`${itemsToUpdate.length} items moved`, 'success');
+        } catch (e) {
+            window.showToast('Failed to move items', 'error');
+        }
     };
 
     const getFiltered = () => {
@@ -276,7 +309,7 @@ function AppContent() {
                                 <EmptyState />
                             ) : (
                                 filteredTools.map(tool => (
-                                    <ToolCard key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} />
+                                    <ToolCard key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} selectMode={selectMode} selectedItems={selectedItems} toggleSelection={toggleSelection} />
                                 ))
                             )}
                         </div>
@@ -286,7 +319,7 @@ function AppContent() {
                                 <EmptyState />
                             ) : (
                                 filteredTools.map(tool => (
-                                    <ToolRow key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} />
+                                    <ToolRow key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} selectMode={selectMode} selectedItems={selectedItems} toggleSelection={toggleSelection} />
                                 ))
                             )}
                         </div>
@@ -294,15 +327,34 @@ function AppContent() {
                 </main>
             </div>
             
-            <Modal 
-                isOpen={modalOpen} 
-                onClose={() => setModalOpen(false)} 
-                tool={modalTool || {}} 
+            <Modal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                tool={modalTool || {}}
                 isEditing={modalEditing}
                 doSave={doSave}
                 doUpdate={doUpdate}
             />
-            
+
+            <BulkActionBar
+                onDeleteClick={() => setConfirmDeleteOpen(true)}
+                onMoveToFolderClick={() => setFolderPickerOpen(true)}
+            />
+
+            <FolderPickerModal
+                isOpen={folderPickerOpen}
+                onClose={() => setFolderPickerOpen(false)}
+                onFolderSelect={handleMoveToFolder}
+            />
+
+            <ConfirmModal
+                isOpen={confirmDeleteOpen}
+                onClose={() => setConfirmDeleteOpen(false)}
+                onConfirm={handleBulkDelete}
+                title="Delete Selected Items"
+                message={`Are you sure you want to delete ${selectedItems.size} selected ${selectedItems.size === 1 ? 'item' : 'items'}? This action cannot be undone.`}
+            />
+
             <ToastContainer />
         </>
     );

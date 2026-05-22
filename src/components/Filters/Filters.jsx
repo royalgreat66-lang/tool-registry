@@ -3,7 +3,7 @@ import { TAG_LABELS } from '../../utils/helpers';
 import './Filters.css';
 
 export default function Filters() {
-    const { currentView, activeFilters, setActiveFilters, searchQuery, setSearchQuery, displayMode, setDisplayMode } = useApp();
+    const { currentView, activeFilters, setActiveFilters, searchQuery, setSearchQuery, displayMode, setDisplayMode, selectMode, toggleSelectMode } = useApp();
 
     const handleFilterClick = (filter) => {
         if (filter === 'all') {
@@ -23,15 +23,42 @@ export default function Filters() {
     };
 
     if (currentView === 'folder') {
-        return null;
+        return (
+            <div className="toolbar" id="toolbar">
+                <div className="filters" id="filterSection">
+                    <div className="search-box">
+                        <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search Links..."
+                            autoComplete="off"
+                        />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                        className={`select-mode-btn ${selectMode ? 'active' : ''}`}
+                        onClick={toggleSelectMode}
+                        title={selectMode ? 'Cancel selection' : 'Select items'}
+                    >
+                        {selectMode ? 'Cancel' : 'Select'}
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="toolbar" id="toolbar">
             <div className="filters" id="filterSection">
                 <div className="filter-group" id="filterGroup">
-                    <button 
-                        className={`filter-btn ${activeFilters.includes('all') ? 'active' : ''}`} 
+                    <button
+                        className={`filter-btn ${activeFilters.includes('all') ? 'active' : ''}`}
                         onClick={() => handleFilterClick('all')}
                     >
                         All Links
@@ -51,8 +78,8 @@ export default function Filters() {
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search Links..."
@@ -61,17 +88,24 @@ export default function Filters() {
                 </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button
+                    className={`select-mode-btn ${selectMode ? 'active' : ''}`}
+                    onClick={toggleSelectMode}
+                    title={selectMode ? 'Cancel selection' : 'Select items'}
+                >
+                    {selectMode ? 'Cancel' : 'Select'}
+                </button>
                 <div className="view-toggle">
-                    <button 
-                        className={`view-btn ${displayMode === 'grid' ? 'active' : ''}`} 
-                        onClick={() => setDisplayMode('grid')} 
+                    <button
+                        className={`view-btn ${displayMode === 'grid' ? 'active' : ''}`}
+                        onClick={() => setDisplayMode('grid')}
                         title="Grid view"
                     >
                         ▦
                     </button>
-                    <button 
-                        className={`view-btn ${displayMode === 'list' ? 'active' : ''}`} 
-                        onClick={() => setDisplayMode('list')} 
+                    <button
+                        className={`view-btn ${displayMode === 'list' ? 'active' : ''}`}
+                        onClick={() => setDisplayMode('list')}
                         title="List view"
                     >
                         ☰

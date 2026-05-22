@@ -64,6 +64,7 @@
     display: flex;
     gap: 14px;
     align-items: flex-start;
+    position: relative;
 }
 
 .tool-icon {
@@ -232,6 +233,46 @@
     border-color: var(--warning);
     color: var(--warning);
     background: rgba(251, 191, 36, 0.1);
+}
+
+.card-select-checkbox {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 10;
+    accent-color: var(--accent);
+}
+
+.tool-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+    box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+.tool-card.selected:hover {
+    border-color: var(--accent-light);
+    box-shadow: 0 0 0 2px var(--accent), 0 8px 32px rgba(91, 106, 240, 0.3);
+}
+
+.tool-card.selected .tool-name {
+    color: var(--accent-light);
+}
+
+.tool-card.selected .tool-url {
+    color: var(--accent);
+}
+
+.tool-card.dimmed {
+    opacity: 0.5;
+    filter: grayscale(30%);
+}
+
+.tool-card.dimmed:hover {
+    opacity: 0.7;
+    filter: grayscale(20%);
 }
 
 @media(max-width: 768px) {

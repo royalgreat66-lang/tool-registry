@@ -116,6 +116,30 @@
     color: var(--accent-light);
 }
 
+.select-mode-btn {
+    padding: 7px 15px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.select-mode-btn:hover {
+    border-color: var(--border-secondary);
+    color: var(--text-primary);
+}
+
+.select-mode-btn.active {
+    background: var(--error-glow);
+    border-color: var(--error);
+    color: var(--error);
+}
+
 @media(max-width: 768px) {
     .filters {
         flex-direction: column;

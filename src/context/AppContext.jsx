@@ -18,6 +18,8 @@ export function AppProvider({ children }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [displayMode, setDisplayMode] = useState('grid');
     const [loading, setLoading] = useState(true);
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedItems, setSelectedItems] = useState(new Set());
 
     // Get current user
     async function getUser() {
@@ -162,6 +164,34 @@ export function AppProvider({ children }) {
         await loadTools();
     }
 
+    // Toggle select mode
+    function toggleSelectMode() {
+        setSelectMode(prev => {
+            if (!prev) {
+                setSelectedItems(new Set());
+            }
+            return !prev;
+        });
+    }
+
+    // Toggle selection for a single item
+    function toggleSelection(toolId) {
+        setSelectedItems(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(toolId)) {
+                newSet.delete(toolId);
+            } else {
+                newSet.add(toolId);
+            }
+            return newSet;
+        });
+    }
+
+    // Clear all selections
+    function clearSelection() {
+        setSelectedItems(new Set());
+    }
+
     // Initialize app
     useEffect(() => {
         async function init() {
@@ -201,7 +231,14 @@ export function AppProvider({ children }) {
         insertTool,
         updateToolInDB,
         deleteToolFromDB,
-        getUser
+        getUser,
+        selectMode,
+        setSelectMode,
+        selectedItems,
+        setSelectedItems,
+        toggleSelectMode,
+        toggleSelection,
+        clearSelection
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

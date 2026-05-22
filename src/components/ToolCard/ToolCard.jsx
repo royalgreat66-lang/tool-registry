@@ -4,7 +4,7 @@ import { esc, normalizeTags, TAG_LABELS, getTimeAgo } from '../../utils/helpers'
 import Spinner from '../Spinner/Spinner';
 import './ToolCard.css';
 
-export default function ToolCard({ tool, editTool, removeToolById }) {
+export default function ToolCard({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection }) {
     const { folders, currentView } = useApp();
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -28,9 +28,24 @@ export default function ToolCard({ tool, editTool, removeToolById }) {
         <span className="folder-badge">{esc(folder.name)}</span>
     ) : null;
 
+    const isSelected = selectedItems && selectedItems.has(tool.id);
+
+    const handleCheckboxChange = (e) => {
+        e.stopPropagation();
+        toggleSelection(tool.id);
+    };
+
     return (
-        <article className="tool-card entering" data-tool-id={tool.id}>
+        <article className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`} data-tool-id={tool.id}>
             <div className="card-header">
+                {selectMode && (
+                    <input
+                        type="checkbox"
+                        className="card-select-checkbox"
+                        checked={isSelected}
+                        onChange={handleCheckboxChange}
+                    />
+                )}
                 <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`}>
                     {tool.icon ? (
                         <img 

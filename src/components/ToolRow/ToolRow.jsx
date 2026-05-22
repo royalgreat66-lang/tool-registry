@@ -4,7 +4,7 @@ import { esc } from '../../utils/helpers';
 import Spinner from '../Spinner/Spinner';
 import './ToolRow.css';
 
-export default function ToolRow({ tool, editTool, removeToolById }) {
+export default function ToolRow({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection }) {
     const { folders, currentView } = useApp();
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -26,8 +26,23 @@ export default function ToolRow({ tool, editTool, removeToolById }) {
         <span className="folder-badge">{esc(folder.name)}</span>
     ) : null;
 
+    const isSelected = selectedItems && selectedItems.has(tool.id);
+
+    const handleCheckboxChange = (e) => {
+        e.stopPropagation();
+        toggleSelection(tool.id);
+    };
+
     return (
-        <div className="tool-row" data-tool-id={tool.id}>
+        <div className={`tool-row ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`} data-tool-id={tool.id}>
+            {selectMode && (
+                <input
+                    type="checkbox"
+                    className="row-select-checkbox"
+                    checked={isSelected}
+                    onChange={handleCheckboxChange}
+                />
+            )}
             <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`} style={{ width: '36px', height: '36px', fontSize: '1.1rem' }}>
                 {tool.icon ? (
                     <img 
