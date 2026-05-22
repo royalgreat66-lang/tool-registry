@@ -28,11 +28,6 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
 
     const isSelected = selectedItems && selectedItems.has(tool.id);
 
-    const handleCheckboxChange = (e) => {
-        e.stopPropagation();
-        toggleSelection(tool.id);
-    };
-
     const handleRowClick = () => {
         if (selectMode) {
             toggleSelection(tool.id);
@@ -45,14 +40,6 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
             data-tool-id={tool.id}
             onClick={handleRowClick}
         >
-            {selectMode && (
-                <input
-                    type="checkbox"
-                    className="row-select-checkbox"
-                    checked={isSelected}
-                    onChange={handleCheckboxChange}
-                />
-            )}
             <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`} style={{ width: '36px', height: '36px', fontSize: '1.1rem' }}>
                 {tool.icon ? (
                     <img 
@@ -68,13 +55,17 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
             </div>
             <div className="tool-meta">
                 <h3 className="tool-name">{esc(tool.name)}</h3>
-                <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
+                {selectMode ? (
+                    <span className="tool-url">{domain}</span>
+                ) : (
+                    <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
+                )}
             </div>
             {folderBadge}
             <div className="tool-actions">
-                <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" style={{ width: '28px', height: '28px' }}>↗</button>
-                <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" style={{ width: '28px', height: '28px' }}>✎</button>
-                <button className="action-btn" onClick={handleDelete} disabled={isDeleting} title="Remove" style={{ width: '28px', height: '28px' }}>
+                <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode} style={{ width: '28px', height: '28px' }}>↗</button>
+                <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode} style={{ width: '28px', height: '28px' }}>✎</button>
+                <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode} title="Remove" style={{ width: '28px', height: '28px' }}>
                     {isDeleting ? <Spinner /> : '✕'}
                 </button>
             </div>

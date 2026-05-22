@@ -147,14 +147,6 @@
     background: rgba(251, 191, 36, 0.1);
 }
 
-.row-select-checkbox {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-}
-
 .tool-row.selected {
     border-color: var(--accent);
     background: var(--accent-glow);

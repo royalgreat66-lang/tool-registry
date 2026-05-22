@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import Spinner from '../Spinner/Spinner';
 import './ConfirmModal.css';
 
-export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
+export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }) {
     const [isSelectingText, setIsSelectingText] = useState(false);
 
     if (!isOpen) return null;
@@ -10,8 +11,8 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
         <div className="modal-overlay active" onClick={(e) => {
             if (!isSelectingText) onClose();
         }}>
-            <div 
-                className="modal confirm-modal" 
+            <div
+                className="modal confirm-modal"
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={() => setIsSelectingText(true)}
                 onMouseUp={() => setIsSelectingText(false)}
@@ -24,7 +25,9 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
                     <p>{message}</p>
                     <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-                        <button type="button" className="btn-danger" onClick={onConfirm}>Confirm</button>
+                        <button type="button" className="btn-danger" onClick={onConfirm} disabled={isLoading}>
+                            {isLoading ? <Spinner /> : 'Confirm'}
+                        </button>
                     </div>
                 </div>
             </div>

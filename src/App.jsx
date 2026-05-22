@@ -360,6 +360,7 @@ function AppContent() {
                 onConfirm={handleBulkDelete}
                 title="Delete Selected Items"
                 message={`Are you sure you want to delete ${selectedItems.size} selected ${selectedItems.size === 1 ? 'item' : 'items'}? This action cannot be undone.`}
+                isLoading={isBulkDeleting}
             />
 
             <ToastContainer />

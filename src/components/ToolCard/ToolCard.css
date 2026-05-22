@@ -235,17 +235,6 @@
     background: rgba(251, 191, 36, 0.1);
 }
 
-.card-select-checkbox {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    z-index: 10;
-    accent-color: var(--accent);
-}
-
 .tool-card.selected {
     border-color: var(--accent);
     background: var(--accent-glow);

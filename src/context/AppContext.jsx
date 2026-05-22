@@ -169,6 +169,8 @@ export function AppProvider({ children }) {
         setSelectMode(prev => {
             if (!prev) {
                 setSelectedItems(new Set());
+            } else {
+                setSelectedItems(new Set());
             }
             return !prev;
         });

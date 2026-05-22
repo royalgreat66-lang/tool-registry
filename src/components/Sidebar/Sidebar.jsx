@@ -11,6 +11,7 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [folderToDelete, setFolderToDelete] = useState(null);
     const [folderToRename, setFolderToRename] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const looseCount = tools.filter(t => !t.folder_id).length;
     const everythingCount = tools.length;
@@ -34,12 +35,15 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
     };
 
     const handleConfirmDelete = async () => {
+        setIsDeleting(true);
         try {
             await deleteFolder(folderToDelete);
             setConfirmModalOpen(false);
             setFolderToDelete(null);
         } catch (e) {
             console.error('Failed to delete folder:', e);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -103,12 +107,13 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
                 onClose={() => setFolderModalOpen(false)} 
                 onSave={handleSaveFolder}
             />
-            <ConfirmModal 
+            <ConfirmModal
                 isOpen={confirmModalOpen}
                 onClose={() => { setConfirmModalOpen(false); setFolderToDelete(null); }}
                 onConfirm={handleConfirmDelete}
                 title="Delete Folder"
                 message={`Are you sure you want to delete this folder and all ${tools.filter(t => t.folder_id === folderToDelete).length} links inside?`}
+                isLoading={isDeleting}
             />
         </>
     );

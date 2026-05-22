@@ -30,11 +30,6 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
 
     const isSelected = selectedItems && selectedItems.has(tool.id);
 
-    const handleCheckboxChange = (e) => {
-        e.stopPropagation();
-        toggleSelection(tool.id);
-    };
-
     const handleCardClick = () => {
         if (selectMode) {
             toggleSelection(tool.id);
@@ -48,14 +43,6 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
             onClick={handleCardClick}
         >
             <div className="card-header">
-                {selectMode && (
-                    <input
-                        type="checkbox"
-                        className="card-select-checkbox"
-                        checked={isSelected}
-                        onChange={handleCheckboxChange}
-                    />
-                )}
                 <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`}>
                     {tool.icon ? (
                         <img 
@@ -71,7 +58,11 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
                 </div>
                 <div className="tool-meta">
                     <h3 className="tool-name" title={esc(tool.name)}>{esc(tool.name)}</h3>
-                    <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
+                    {selectMode ? (
+                        <span className="tool-url">{domain}</span>
+                    ) : (
+                        <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
+                    )}
                 </div>
                 {folderBadge}
             </div>
@@ -87,9 +78,9 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
                     <span>{esc(tool.source || 'Microlink')} · {timeAgo}</span>
                 </div>
                 <div className="tool-actions">
-                    <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit">↗</button>
-                    <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit">✎</button>
-                    <button className="action-btn" onClick={handleDelete} disabled={isDeleting} title="Remove">
+                    <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode}>↗</button>
+                    <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode}>✎</button>
+                    <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode} title="Remove">
                         {isDeleting ? <Spinner /> : '✕'}
                     </button>
                 </div>
