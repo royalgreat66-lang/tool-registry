@@ -140,6 +140,37 @@
     color: var(--error);
 }
 
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.icon-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-btn:hover {
+    border-color: var(--border-secondary);
+    color: var(--text-primary);
+}
+
+.icon-btn.active {
+    background: var(--error-glow);
+    border-color: var(--error);
+    color: var(--error);
+}
+
 @media(max-width: 768px) {
     .filters {
         flex-direction: column;

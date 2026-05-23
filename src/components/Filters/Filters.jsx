@@ -1,5 +1,6 @@
 import { useApp } from '../../context/AppContext';
 import { TAG_LABELS } from '../../utils/helpers';
+import ReorderIcon from '../../assets/ReorderIcon.svg';
 import './Filters.css';
 
 export default function Filters() {
@@ -42,11 +43,11 @@ export default function Filters() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <button
-                        className={`select-mode-btn ${reorderMode ? 'active' : ''}`}
+                        className={`icon-btn ${reorderMode ? 'active' : ''}`}
                         onClick={toggleReorderMode}
-                        title={reorderMode ? 'Exit reorder mode' : 'Reorder items'}
+                        title="Reorder"
                     >
-                        {reorderMode ? 'Cancel' : 'Reorder'}
+                        <img src={ReorderIcon} alt="Reorder" />
                     </button>
                     <button
                         className={`select-mode-btn ${selectMode ? 'active' : ''}`}
