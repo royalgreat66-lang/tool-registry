@@ -33,6 +33,7 @@ import FolderPickerModal from './components/FolderPickerModal/FolderPickerModal'
 import ConfirmModal from './components/ConfirmModal/ConfirmModal';
 import ToastContainer from './components/ToastContainer/ToastContainer';
 import EmptyState from './components/EmptyState/EmptyState';
+import backgroundSvg from './assets/background.svg';
 import './main.css';
 
 function AppContent() {
@@ -344,6 +345,19 @@ function AppContent() {
 
     return (
         <>
+            <img
+                src={backgroundSvg}
+                alt=""
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: -1,
+                    objectFit: 'cover'
+                }}
+            />
             <div className="bg-noise"></div>
             <div className="bg-glow"></div>
             
