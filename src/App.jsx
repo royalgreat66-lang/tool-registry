@@ -1,4 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    defaultDropAnimationSideEffects,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    rectSortingStrategy,
+} from '@dnd-kit/sortable';
 import { AppProvider, useApp } from './context/AppContext';
 import { extractMetadata, normalizeTags } from './utils/helpers';
 import LoadingScreen from './components/LoadingScreen/LoadingScreen';
@@ -27,7 +43,7 @@ function AppContent() {
         insertTool, updateToolInDB, deleteToolFromDB, createFolder, renameFolder, deleteFolder,
         getUser,
         selectMode, selectedItems, toggleSelectMode, clearSelection, toggleSelection,
-        incrementFolderUsage
+        reorderMode, toggleReorderMode, updateToolsOrder, incrementFolderUsage
     } = useApp();
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -37,6 +53,46 @@ function AppContent() {
     const [folderPickerOpen, setFolderPickerOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+    const [activeId, setActiveId] = useState(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragStart = (event) => {
+        const { active } = event;
+        setActiveId(active.id);
+    };
+
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        setActiveId(null);
+
+        if (active.id !== over?.id) {
+            const oldIndex = filteredTools.findIndex((t) => t.id === active.id);
+            const newIndex = filteredTools.findIndex((t) => t.id === over.id);
+            
+            const newOrderedTools = arrayMove(filteredTools, oldIndex, newIndex);
+            await updateToolsOrder(newOrderedTools);
+        }
+    };
+
+    const dropAnimation = {
+        sideEffects: defaultDropAnimationSideEffects({
+            styles: {
+                active: {
+                    opacity: '0.5',
+                },
+            },
+        }),
+    };
 
     useEffect(() => {
         const handleResize = () => {
@@ -310,27 +366,73 @@ function AppContent() {
                     <UrlInput handleSubmit={handleSubmit} />
                     <Filters />
                     
-                    {displayMode === 'grid' ? (
-                        <div className="tools-grid" id="toolsGrid">
-                            {filteredTools.length === 0 ? (
-                                <EmptyState />
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={filteredTools.map((t) => t.id)}
+                            strategy={rectSortingStrategy}
+                            disabled={!reorderMode}
+                        >
+                            {displayMode === 'grid' ? (
+                                <div className="tools-grid" id="toolsGrid">
+                                    {filteredTools.length === 0 ? (
+                                        <EmptyState />
+                                    ) : (
+                                        filteredTools.map(tool => (
+                                            <ToolCard 
+                                                key={tool.id} 
+                                                tool={tool} 
+                                                editTool={editTool} 
+                                                removeToolById={removeToolById} 
+                                                selectMode={selectMode} 
+                                                selectedItems={selectedItems} 
+                                                toggleSelection={toggleSelection}
+                                                reorderMode={reorderMode}
+                                            />
+                                        ))
+                                    )}
+                                </div>
                             ) : (
-                                filteredTools.map(tool => (
-                                    <ToolCard key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} selectMode={selectMode} selectedItems={selectedItems} toggleSelection={toggleSelection} />
-                                ))
+                                <div className="tools-list" id="toolsList">
+                                    {filteredTools.length === 0 ? (
+                                        <EmptyState />
+                                    ) : (
+                                        filteredTools.map(tool => (
+                                            <ToolRow 
+                                                key={tool.id} 
+                                                tool={tool} 
+                                                editTool={editTool} 
+                                                removeToolById={removeToolById} 
+                                                selectMode={selectMode} 
+                                                selectedItems={selectedItems} 
+                                                toggleSelection={toggleSelection}
+                                                reorderMode={reorderMode}
+                                            />
+                                        ))
+                                    )}
+                                </div>
                             )}
-                        </div>
-                    ) : (
-                        <div className="tools-list" id="toolsList">
-                            {filteredTools.length === 0 ? (
-                                <EmptyState />
-                            ) : (
-                                filteredTools.map(tool => (
-                                    <ToolRow key={tool.id} tool={tool} editTool={editTool} removeToolById={removeToolById} selectMode={selectMode} selectedItems={selectedItems} toggleSelection={toggleSelection} />
-                                ))
-                            )}
-                        </div>
-                    )}
+                        </SortableContext>
+                        <DragOverlay dropAnimation={dropAnimation}>
+                            {activeId ? (
+                                displayMode === 'grid' ? (
+                                    <ToolCard 
+                                        tool={filteredTools.find((t) => t.id === activeId)} 
+                                        isOverlay 
+                                    />
+                                ) : (
+                                    <ToolRow 
+                                        tool={filteredTools.find((t) => t.id === activeId)} 
+                                        isOverlay 
+                                    />
+                                )
+                            ) : null}
+                        </DragOverlay>
+                    </DndContext>
                 </main>
             </div>
             

@@ -1,12 +1,33 @@
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useApp } from '../../context/AppContext';
 import { esc } from '../../utils/helpers';
 import Spinner from '../Spinner/Spinner';
 import './ToolRow.css';
 
-export default function ToolRow({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection }) {
+export default function ToolRow({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection, reorderMode, isOverlay }) {
     const { folders, currentView } = useApp();
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: tool.id,
+        disabled: !reorderMode || isOverlay,
+    });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+        zIndex: isOverlay ? 1000 : 'auto',
+    };
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -36,9 +57,13 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
 
     return (
         <div
-            className={`tool-row ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`}
+            ref={setNodeRef}
+            className={`tool-row ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''} ${reorderMode ? 'reorder-active' : ''} ${isOverlay ? 'is-overlay' : ''} ${isDragging ? 'is-dragging' : ''}`}
             data-tool-id={tool.id}
             onClick={handleRowClick}
+            {...attributes}
+            {...listeners}
+            style={style}
         >
             <div className={`tool-icon ${!tool.icon ? 'fallback' : ''}`} style={{ width: '36px', height: '36px', fontSize: '1.1rem' }}>
                 {tool.icon ? (
@@ -55,7 +80,7 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
             </div>
             <div className="tool-meta">
                 <h3 className="tool-name">{esc(tool.name)}</h3>
-                {selectMode ? (
+                {selectMode || reorderMode ? (
                     <span className="tool-url">{domain}</span>
                 ) : (
                     <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
@@ -63,9 +88,9 @@ export default function ToolRow({ tool, editTool, removeToolById, selectMode, se
             </div>
             {folderBadge}
             <div className="tool-actions">
-                <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode} style={{ width: '28px', height: '28px' }}>↗</button>
-                <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode} style={{ width: '28px', height: '28px' }}>✎</button>
-                <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode} title="Remove" style={{ width: '28px', height: '28px' }}>
+                <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode || reorderMode} style={{ width: '28px', height: '28px' }}>↗</button>
+                <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode || reorderMode} style={{ width: '28px', height: '28px' }}>✎</button>
+                <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode || reorderMode} title="Remove" style={{ width: '28px', height: '28px' }}>
                     {isDeleting ? <Spinner /> : '✕'}
                 </button>
             </div>

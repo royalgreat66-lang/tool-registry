@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useApp } from '../../context/AppContext';
 import { esc, normalizeTags, TAG_LABELS, getTimeAgo } from '../../utils/helpers';
 import Spinner from '../Spinner/Spinner';
@@ -51,12 +53,37 @@ function animateValue({ start = 0, end = 100, duration = 1000, delay = 0, ease =
     setTimeout(() => requestAnimationFrame(tick), delay);
 }
 
-export default function ToolCard({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection }) {
+export default function ToolCard({ tool, editTool, removeToolById, selectMode, selectedItems, toggleSelection, reorderMode, isOverlay }) {
     const { folders, currentView } = useApp();
     const [isDeleting, setIsDeleting] = useState(false);
     const [rotateX, setRotateX] = useState(0);
     const [rotateY, setRotateY] = useState(0);
     const cardRef = useRef(null);
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: tool.id,
+        disabled: !reorderMode || isOverlay,
+    });
+
+    const combinedRef = (node) => {
+        setNodeRef(node);
+        cardRef.current = node;
+    };
+
+    const dndStyle = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+        cursor: reorderMode ? 'grab' : 'default',
+        zIndex: isOverlay ? 1000 : 'auto',
+    };
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -149,18 +176,18 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
     };
 
     useEffect(() => {
-        if (cardRef.current && !selectMode) {
+        if (cardRef.current && !selectMode && !reorderMode && !isOverlay) {
             cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             cardRef.current.style.transition = 'transform 0.1s ease-out';
-        } else if (cardRef.current) {
+        } else if (cardRef.current && !reorderMode) {
             cardRef.current.style.transform = '';
             cardRef.current.style.transition = '';
         }
-    }, [rotateX, rotateY, selectMode]);
+    }, [rotateX, rotateY, selectMode, reorderMode, isOverlay]);
 
     useEffect(() => {
         const animated = false;
-        if (!animated || !cardRef.current) return;
+        if (!animated || !cardRef.current || reorderMode || isOverlay) return;
         const card = cardRef.current;
         const angleStart = 110;
         const angleEnd = 465;
@@ -197,16 +224,18 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
         });
     }, []);
 
-    const glowVars = buildGlowVars('40 80 80', 1.0);
+    const glowVars = buildGlowVars('40 80 80', reorderMode || isOverlay ? 0 : 1.0);
 
     return (
         <article
-            ref={cardRef}
-            className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''}`}
+            ref={combinedRef}
+            className={`tool-card entering ${isSelected ? 'selected' : ''} ${selectMode && !isSelected ? 'dimmed' : ''} ${isOverlay ? 'is-overlay' : ''} ${isDragging ? 'is-dragging' : ''}`}
             data-tool-id={tool.id}
             onClick={handleCardClick}
             onPointerMove={handlePointerMove}
             onPointerLeave={handlePointerLeave}
+            {...attributes}
+            {...listeners}
             style={{
                 '--edge-sensitivity': 30,
                 '--glow-padding': '40px',
@@ -214,6 +243,7 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
                 '--fill-opacity': 0.5,
                 ...glowVars,
                 ...buildGradientVars(['#c084fc', '#f472b6', '#38bdf8']),
+                ...dndStyle,
             }}
         >
             <span className="edge-light" aria-hidden="true" />
@@ -233,7 +263,7 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
                 </div>
                 <div className="tool-meta">
                     <h3 className="tool-name" title={esc(tool.name)}>{esc(tool.name)}</h3>
-                    {selectMode ? (
+                    {selectMode || reorderMode ? (
                         <span className="tool-url">{domain}</span>
                     ) : (
                         <a href={esc(tool.url)} target="_blank" rel="noopener" className="tool-url">{domain}</a>
@@ -253,9 +283,9 @@ export default function ToolCard({ tool, editTool, removeToolById, selectMode, s
                     <span>{esc(tool.source || 'Microlink')} · {timeAgo}</span>
                 </div>
                 <div className="tool-actions">
-                    <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode}>↗</button>
-                    <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode}>✎</button>
-                    <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode} title="Remove">
+                    <button className="action-btn visit" onClick={() => window.open(tool.url, '_blank')} title="Visit" disabled={selectMode || reorderMode}>↗</button>
+                    <button className="action-btn edit" onClick={() => editTool(tool.id)} title="Edit" disabled={selectMode || reorderMode}>✎</button>
+                    <button className="action-btn" onClick={handleDelete} disabled={isDeleting || selectMode || reorderMode} title="Remove">
                         {isDeleting ? <Spinner /> : '✕'}
                     </button>
                 </div>

@@ -379,6 +379,28 @@
     filter: grayscale(20%);
 }
 
+.tool-card.is-dragging {
+    opacity: 0.3 !important;
+}
+
+.tool-card.is-overlay {
+    opacity: 1 !important;
+    z-index: 1000 !important;
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-primary);
+    cursor: grabbing;
+}
+
+.tool-card.is-overlay::before,
+.tool-card.is-overlay::after,
+.tool-card.is-overlay > .edge-light {
+    display: none !important;
+}
+
+.tool-row.reorder-active {
+    cursor: grab;
+}
+
 @media(max-width: 768px) {
     .tools-grid {
         grid-template-columns: 1fr;

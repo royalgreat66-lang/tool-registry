@@ -3,7 +3,7 @@ import { TAG_LABELS } from '../../utils/helpers';
 import './Filters.css';
 
 export default function Filters() {
-    const { currentView, activeFilters, setActiveFilters, searchQuery, setSearchQuery, displayMode, setDisplayMode, selectMode, toggleSelectMode } = useApp();
+    const { currentView, activeFilters, setActiveFilters, searchQuery, setSearchQuery, displayMode, setDisplayMode, selectMode, toggleSelectMode, reorderMode, toggleReorderMode } = useApp();
 
     const handleFilterClick = (filter) => {
         if (filter === 'all') {
@@ -41,6 +41,13 @@ export default function Filters() {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                        className={`select-mode-btn ${reorderMode ? 'active' : ''}`}
+                        onClick={toggleReorderMode}
+                        title={reorderMode ? 'Exit reorder mode' : 'Reorder items'}
+                    >
+                        {reorderMode ? 'Cancel' : 'Reorder'}
+                    </button>
                     <button
                         className={`select-mode-btn ${selectMode ? 'active' : ''}`}
                         onClick={toggleSelectMode}

@@ -19,6 +19,7 @@ export function AppProvider({ children }) {
     const [displayMode, setDisplayMode] = useState('grid');
     const [loading, setLoading] = useState(true);
     const [selectMode, setSelectMode] = useState(false);
+    const [reorderMode, setReorderMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
 
     // Get current user
@@ -32,7 +33,11 @@ export function AppProvider({ children }) {
         const currentUser = await getUser();
         if (!currentUser) return;
         try {
-            const { data, error } = await db.from('tools').select('*').eq('user_id', currentUser.id).order('added_at', { ascending: false });
+            const { data, error } = await db.from('tools')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('position', { ascending: true, nullsFirst: false })
+                .order('added_at', { ascending: false });
             if (error) throw error;
             setTools((data || []).map(t => ({...t, tags: normalizeTags(t.tags)})));
         } catch(e) { 
@@ -137,9 +142,45 @@ export function AppProvider({ children }) {
     async function insertTool(tool) {
         const currentUser = await getUser();
         if (!currentUser) throw new Error('Not signed in — please refresh the page');
-        const { error } = await db.from('tools').insert([{ ...tool, user_id: currentUser.id }]);
+        
+        // Find the next available position in this folder (or globally if no folder)
+        const folderId = tool.folder_id || null;
+        const toolsInFolder = tools.filter(t => t.folder_id === folderId);
+        const maxPos = toolsInFolder.reduce((max, t) => Math.max(max, t.position || 0), -1);
+        const position = maxPos + 1;
+
+        const { error } = await db.from('tools').insert([{ ...tool, user_id: currentUser.id, position }]);
         if (error) throw error;
         await loadTools();
+    }
+
+    // Update tools order
+    async function updateToolsOrder(newOrderedTools) {
+        const currentUser = await getUser();
+        if (!currentUser) return;
+
+        // Optimistically update local state
+        setTools(prev => {
+            const otherTools = prev.filter(t => !newOrderedTools.find(nt => nt.id === t.id));
+            const updatedTools = newOrderedTools.map((t, index) => ({ ...t, position: index }));
+            return [...updatedTools, ...otherTools].sort((a, b) => {
+                if (a.position !== null && b.position !== null) return a.position - b.position;
+                if (a.position !== null) return -1;
+                if (b.position !== null) return 1;
+                return new Date(b.added_at) - new Date(a.added_at);
+            });
+        });
+
+        try {
+            // Update Supabase
+            const updates = newOrderedTools.map((tool, index) => {
+                return db.from('tools').update({ position: index }).eq('id', tool.id);
+            });
+            await Promise.all(updates);
+        } catch (e) {
+            console.error('Failed to update tools order:', e);
+            await loadTools(); // Rollback on error
+        }
     }
 
     // Update existing tool
@@ -168,8 +209,20 @@ export function AppProvider({ children }) {
     function toggleSelectMode() {
         setSelectMode(prev => {
             if (!prev) {
+                setReorderMode(false); // Mutually exclusive
                 setSelectedItems(new Set());
             } else {
+                setSelectedItems(new Set());
+            }
+            return !prev;
+        });
+    }
+
+    // Toggle reorder mode
+    function toggleReorderMode() {
+        setReorderMode(prev => {
+            if (!prev) {
+                setSelectMode(false); // Mutually exclusive
                 setSelectedItems(new Set());
             }
             return !prev;
@@ -236,6 +289,10 @@ export function AppProvider({ children }) {
         getUser,
         selectMode,
         setSelectMode,
+        reorderMode,
+        setReorderMode,
+        toggleReorderMode,
+        updateToolsOrder,
         selectedItems,
         setSelectedItems,
         toggleSelectMode,

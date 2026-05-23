@@ -169,7 +169,19 @@
     filter: grayscale(30%);
 }
 
-.tool-row.dimmed:hover {
-    opacity: 0.7;
-    filter: grayscale(20%);
+.tool-row.is-dragging {
+    opacity: 0.3 !important;
+}
+
+.tool-row.is-overlay {
+    opacity: 1 !important;
+    z-index: 1000 !important;
+    transform: scale(1.02);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    cursor: grabbing;
+    background: var(--bg-card-hover);
+}
+
+.tool-row.reorder-active {
+    cursor: grab;
 }
