@@ -140,19 +140,27 @@ export function AppProvider({ children }) {
 
     // Insert new tool
     async function insertTool(tool) {
-        const currentUser = await getUser();
-        if (!currentUser) throw new Error('Not signed in — please refresh the page');
-        
-        // Find the next available position in this folder (or globally if no folder)
-        const folderId = tool.folder_id || null;
-        const toolsInFolder = tools.filter(t => t.folder_id === folderId);
-        const maxPos = toolsInFolder.reduce((max, t) => Math.max(max, t.position || 0), -1);
-        const position = maxPos + 1;
+    const currentUser = await getUser();
+    if (!currentUser) throw new Error('Not signed in — please refresh the page');
 
-        const { error } = await db.from('tools').insert([{ ...tool, user_id: currentUser.id, position }]);
-        if (error) throw error;
-        await loadTools();
+    // Duplicate URL check
+    const duplicate = tools.find(t => 
+        t.url.trim().toLowerCase() === tool.url.trim().toLowerCase()
+    );
+    if (duplicate) throw new Error('This URL is already saved');
+
+    // Shift all existing entries in this folder up by 1
+    const folderId = tool.folder_id || null;
+    const toolsInFolder = tools.filter(t => t.folder_id === folderId);
+    for (const t of toolsInFolder) {
+        await db.from('tools').update({ position: (t.position || 0) + 1 }).eq('id', t.id);
     }
+
+    // Insert new entry at position 0 (top)
+    const { error } = await db.from('tools').insert([{ ...tool, user_id: currentUser.id, position: 0 }]);
+    if (error) throw error;
+    await loadTools();
+}
 
     // Update tools order
     async function updateToolsOrder(newOrderedTools) {
