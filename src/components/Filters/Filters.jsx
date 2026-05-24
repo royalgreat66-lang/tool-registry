@@ -97,6 +97,13 @@ export default function Filters() {
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button
+                    className={`icon-btn ${reorderMode ? 'active' : ''}`}
+                    onClick={toggleReorderMode}
+                    title="Reorder"
+                >
+                    <img src={ReorderIcon} alt="Reorder" />
+                </button>
+                <button
                     className={`select-mode-btn ${selectMode ? 'active' : ''}`}
                     onClick={toggleSelectMode}
                     title={selectMode ? 'Cancel selection' : 'Select items'}
