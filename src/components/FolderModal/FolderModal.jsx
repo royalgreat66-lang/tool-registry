@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './FolderModal.css';
 
-export default function FolderModal({ isOpen, onClose, onSave }) {
+export default function FolderModal({ isOpen, onClose, onSave, folder }) {
     const [name, setName] = useState('');
     const [isSelectingText, setIsSelectingText] = useState(false);
+
+    useEffect(() => {
+        if (folder) {
+            setName(folder.name);
+        } else {
+            setName('');
+        }
+    }, [folder, isOpen]);
 
     if (!isOpen) return null;
 
@@ -11,7 +19,7 @@ export default function FolderModal({ isOpen, onClose, onSave }) {
         e.preventDefault();
         if (name.trim()) {
             onSave(name.trim());
-            setName('');
+            if (!folder) setName('');
         }
     };
 
@@ -27,8 +35,8 @@ export default function FolderModal({ isOpen, onClose, onSave }) {
                 onMouseLeave={() => setIsSelectingText(false)}
             >
                 <div className="modal-header">
-                    <h3>Create New Folder</h3>
-                    <p>Enter a name for your new folder</p>
+                    <h3>{folder ? 'Edit Folder' : 'Create New Folder'}</h3>
+                    <p>{folder ? 'Enter a new name for this folder' : 'Enter a name for your new folder'}</p>
                 </div>
                 <div className="modal-body">
                     <form onSubmit={handleSubmit}>
@@ -46,7 +54,7 @@ export default function FolderModal({ isOpen, onClose, onSave }) {
                         </div>
                         <div className="modal-actions">
                             <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-                            <button type="submit" className="btn-save">Create Folder</button>
+                            <button type="submit" className="btn-save">{folder ? 'Save Changes' : 'Create Folder'}</button>
                         </div>
                     </form>
                 </div>

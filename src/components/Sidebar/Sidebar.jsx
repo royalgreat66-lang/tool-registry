@@ -18,14 +18,20 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
 
     const handleCreateFolder = () => {
         setFolderModalOpen(true);
+        setFolderToRename(null);
     };
 
     const handleSaveFolder = async (name) => {
         try {
-            await createFolder(name);
+            if (folderToRename) {
+                await renameFolder(folderToRename.id, name);
+            } else {
+                await createFolder(name);
+            }
             setFolderModalOpen(false);
+            setFolderToRename(null);
         } catch (e) {
-            console.error('Failed to create folder:', e);
+            console.error('Failed to save folder:', e);
         }
     };
 
@@ -50,10 +56,8 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
     const handleRenameFolder = (id) => {
         const folder = folders.find(f => f.id === id);
         if (folder) {
-            const newName = prompt('Enter a new name for this folder:', folder.name);
-            if (newName) {
-                renameFolder(id, newName).catch(e => console.error('Failed to rename folder:', e));
-            }
+            setFolderToRename(folder);
+            setFolderModalOpen(true);
         }
     };
 
@@ -104,8 +108,9 @@ export default function Sidebar({ switchView, createFolder, renameFolder, delete
             </aside>
             <FolderModal 
                 isOpen={folderModalOpen} 
-                onClose={() => setFolderModalOpen(false)} 
+                onClose={() => { setFolderModalOpen(false); setFolderToRename(null); }}
                 onSave={handleSaveFolder}
+                folder={folderToRename}
             />
             <ConfirmModal
                 isOpen={confirmModalOpen}
