@@ -1,6 +1,7 @@
 import { useApp } from '../../context/AppContext';
 import { TAG_LABELS } from '../../utils/helpers';
 import ReorderIcon from '../../assets/ReorderIcon.svg';
+import SelectIcon from '../../assets/SelectIcon.svg';
 import './Filters.css';
 
 export default function Filters() {
@@ -50,11 +51,11 @@ export default function Filters() {
                         <img src={ReorderIcon} alt="Reorder" />
                     </button>
                     <button
-                        className={`select-mode-btn ${selectMode ? 'active' : ''}`}
+                        className={`icon-btn ${selectMode ? 'active' : ''}`}
                         onClick={toggleSelectMode}
                         title={selectMode ? 'Cancel selection' : 'Select items'}
                     >
-                        {selectMode ? 'Cancel' : 'Select'}
+                        <img src={SelectIcon} alt="Select" />
                     </button>
                 </div>
             </div>
@@ -104,11 +105,11 @@ export default function Filters() {
                     <img src={ReorderIcon} alt="Reorder" />
                 </button>
                 <button
-                    className={`select-mode-btn ${selectMode ? 'active' : ''}`}
+                    className={`icon-btn ${selectMode ? 'active' : ''}`}
                     onClick={toggleSelectMode}
                     title={selectMode ? 'Cancel selection' : 'Select items'}
                 >
-                    {selectMode ? 'Cancel' : 'Select'}
+                    <img src={SelectIcon} alt="Select" />
                 </button>
                 <div className="view-toggle">
                     <button
